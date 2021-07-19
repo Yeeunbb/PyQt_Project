@@ -1,8 +1,10 @@
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import *
 from PyQt5 import QtWidgets
+
+from mainSetting.Setting import SettingPage
 
 # main ui control
 class SoundCam(QWidget):
@@ -17,6 +19,7 @@ class SoundCam(QWidget):
 
         self.main_window = MainWindow()
         self.setting_page = SettingPage()
+        self.recording_page = None
 
         widget_layout = QBoxLayout(QtWidgets.QBoxLayout.LeftToRight)
         self.stacked_widget.addWidget(self.main_window)
@@ -25,13 +28,17 @@ class SoundCam(QWidget):
         self.setLayout(widget_layout)
 
         self.main_window.setting_btn.clicked.connect(self.go_setting)
-        self.setting_page.button.clicked.connect(self.back_to_main)
+        self.setting_page.back_to_main.clicked.connect(self.back_to_main)
+        self.main_window.start_btn.clicked.connect(self.start)
 
     def go_setting(self):
         self.stacked_widget.setCurrentWidget(self.setting_page)
 
     def back_to_main(self):
         self.stacked_widget.setCurrentWidget(self.main_window)
+
+    def start(self):
+        self.stacked_widget.setCurrentWidget(self.recording_page)
 
 # main page
 class MainWindow(QWidget):
@@ -72,6 +79,7 @@ class MainWindow(QWidget):
             "QPushButton { color: black; background-color: #55B0BC; border-radius: 5px;}"
             "QPushButton:pressed { background-color: #305F65 }"
         )
+        self.power_btn.clicked.connect(QCoreApplication.instance().quit)
 
         # 정보창 버튼
         self.info_btn = QPushButton(flat=True)
@@ -116,15 +124,6 @@ class MainWindow(QWidget):
         main_box.addWidget(self.profile_btn, 1, 3, 1, 1)
         main_box.addWidget(self.file_btn, 2, 2, 1, 2)
 
-# setting page 1
-class SettingPage(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.mainWindow = MainWindow()
-
-        self.setWindowTitle("Setting Page")
-        self.setGeometry(50, 50, 800, 600)
-        self.button = QPushButton('Go To Window 1', self)
 
 # run
 if __name__ == '__main__':
