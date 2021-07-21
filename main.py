@@ -4,7 +4,8 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import *
 from PyQt5 import QtWidgets
 
-from mainSetting.Setting import SettingPage
+from mainSetting.Setting import *
+from measurement.measurement import *
 
 # main ui control
 class SoundCam(QWidget):
@@ -19,17 +20,22 @@ class SoundCam(QWidget):
 
         self.main_window = MainWindow()
         self.setting_page = SettingPage()
-        self.recording_page = None
+        self.setting_btns = SettingBtn()
+        self.measurement_page = MeasurementWidget()
+        # self.measurement_page = None
+
 
         widget_layout = QBoxLayout(QtWidgets.QBoxLayout.LeftToRight)
         self.stacked_widget.addWidget(self.main_window)
         self.stacked_widget.addWidget(self.setting_page)
+        self.stacked_widget.addWidget(self.measurement_page)
         widget_layout.addWidget(self.stacked_widget)
         self.setLayout(widget_layout)
 
         self.main_window.setting_btn.clicked.connect(self.go_setting)
-        self.setting_page.back_to_main.clicked.connect(self.back_to_main)
+        self.setting_btns.back_to_main.clicked.connect(self.back_to_main)
         self.main_window.start_btn.clicked.connect(self.start)
+        self.measurement_page.exit_btn.clicked.connect(self.back_to_main)
 
     def go_setting(self):
         self.stacked_widget.setCurrentWidget(self.setting_page)
@@ -38,7 +44,7 @@ class SoundCam(QWidget):
         self.stacked_widget.setCurrentWidget(self.main_window)
 
     def start(self):
-        self.stacked_widget.setCurrentWidget(self.recording_page)
+        self.stacked_widget.setCurrentWidget(self.measurement_page)
 
 # main page
 class MainWindow(QWidget):
@@ -47,6 +53,7 @@ class MainWindow(QWidget):
 
         self.setWindowTitle('SoundCam')
         self.resize(720, 480)
+
         # 측정 시작 버튼
         self.start_btn = QPushButton(flat=True)
         self.start_btn.setIcon(QIcon('icons/broadcast.png'))
