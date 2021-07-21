@@ -4,7 +4,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import *
 from PyQt5 import QtWidgets
 
-from mainSetting.Setting import SettingPage
+from mainSetting.Setting import *
 
 # main ui control
 class SoundCam(QWidget):
@@ -19,6 +19,7 @@ class SoundCam(QWidget):
 
         self.main_window = MainWindow()
         self.setting_page = SettingPage()
+        self.setting_btns = SettingBtn()
         self.recording_page = None
 
         widget_layout = QBoxLayout(QtWidgets.QBoxLayout.LeftToRight)
@@ -28,7 +29,7 @@ class SoundCam(QWidget):
         self.setLayout(widget_layout)
 
         self.main_window.setting_btn.clicked.connect(self.go_setting)
-        self.setting_page.back_to_main.clicked.connect(self.back_to_main)
+        self.setting_btns.back_to_main.clicked.connect(self.back_to_main)
         self.main_window.start_btn.clicked.connect(self.start)
 
     def go_setting(self):
@@ -47,6 +48,7 @@ class MainWindow(QWidget):
 
         self.setWindowTitle('SoundCam')
         self.resize(720, 480)
+
         # 측정 시작 버튼
         self.start_btn = QPushButton(flat=True)
         self.start_btn.setIcon(QIcon('icons/broadcast.png'))
