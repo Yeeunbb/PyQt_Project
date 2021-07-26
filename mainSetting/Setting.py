@@ -42,8 +42,8 @@ class SettingBtn(QWidget):
         self.back_to_main = QPushButton(self)
         self.back_to_main.setIcon(QIcon('icons/go-back.jpg'))
         self.back_to_main.setIconSize(QSize(40, 40))
-        self.back_to_main.setMaximumHeight(150)
-        self.back_to_main.setMaximumWidth(150)
+        self.back_to_main.setMaximumHeight(100)
+        self.back_to_main.setMaximumWidth(100)
         self.back_to_main.setStyleSheet(
             "QPushButton { color: black; border-radius: 5px;}"
             "QPushButton:pressed { background-color: #D9D9D9; }"
