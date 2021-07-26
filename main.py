@@ -40,6 +40,9 @@ class SoundCam(QWidget):
     def go_setting(self):
         self.stacked_widget.setCurrentWidget(self.setting_page)
 
+    def back_to_main_set(self):
+        self.stacked_widget.setCurrentWidget(self.main_window)
+
     def back_to_main(self):
         self.stacked_widget.setCurrentWidget(self.main_window)
 
