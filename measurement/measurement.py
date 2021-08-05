@@ -19,7 +19,7 @@ class MeasurementWidget(QWidget):
         self.rec_btn = QPushButton('', self)
         self.rec_btn.setMinimumHeight(65)
         self.rec_btn.setMaximumWidth(85)
-        self.rec_btn.setIcon(QIcon('./icons/rec.jpg'))
+        self.rec_btn.setIcon(QIcon('./icons/rec.png'))
         self.rec_btn.setIconSize(QSize(60, 60))
         self.rec_btn.setStyleSheet("background-color: #55B0BC;")
 
