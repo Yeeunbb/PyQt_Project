@@ -40,7 +40,7 @@ class SettingBtn(QWidget):
 
         # main 화면으로 돌아가기
         self.back_to_main = QPushButton(self)
-        self.back_to_main.setIcon(QIcon('icons/go-back.jpg'))
+        self.back_to_main.setIcon(QIcon('icons/go-back.png'))
         self.back_to_main.setIconSize(QSize(40, 40))
         self.back_to_main.setMaximumHeight(100)
         self.back_to_main.setMaximumWidth(100)
