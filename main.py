@@ -36,6 +36,7 @@ class SoundCam(QWidget):
         self.setting_btns.back_to_main.clicked.connect(self.back_to_main)
         self.main_window.start_btn.clicked.connect(self.start)
         self.measurement_page.exit_btn.clicked.connect(self.back_to_main)
+        self.main_window.file_btn.clicked.connect(self.FileOpen)
 
     def go_setting(self):
         self.stacked_widget.setCurrentWidget(self.setting_page)
@@ -48,6 +49,12 @@ class SoundCam(QWidget):
 
     def start(self):
         self.stacked_widget.setCurrentWidget(self.measurement_page)
+
+    def FileOpen(self):
+        fileName = QFileDialog.getOpenFileName(self, self.tr("Open Data Files"), './', self.tr(
+            "Data Files (*.csv *.xls *.xlsx);; Images (*.png *.xpm *.jpg *.gif);; All Files(*.*)"))
+        print("load file : ", self.fileName[0])
+        return fileName
 
 # main page
 class MainWindow(QWidget):
