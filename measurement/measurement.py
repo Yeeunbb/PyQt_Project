@@ -16,6 +16,7 @@ class MeasurementWidget(QWidget):
     def __init__(self):
         super().__init__()
         trigger = Triggers()
+        self.led_flag = 0
     #     self.initUI()
     #
     # def initUI(self):
@@ -64,6 +65,7 @@ class MeasurementWidget(QWidget):
         self.led_btn.setIcon(QIcon('./icons/led.png'))
         self.led_btn.setIconSize(QSize(60, 60))
         self.led_btn.setStyleSheet("background-color: #55B0BC;")
+        self.led_btn.clicked.connect(self.led_control)
 
         self.play_btn = QPushButton('', self)
         self.play_btn.setMinimumHeight(65)
@@ -239,6 +241,14 @@ class MeasurementWidget(QWidget):
             self.grid.removeWidget(self.rec_ultra)
             Triggers.rec_trig = 0
             Triggers.rec_num = 1
+
+    def led_control(self):
+        if self.led_flag == 0:
+            self.led_flag = 1
+            self.led_btn.setIcon(QIcon('icons/led.png'))
+        else:
+            self.led_flag = 0
+            self.led_btn.setIcon(QIcon('icons/led-off.png'))
 
 
 
