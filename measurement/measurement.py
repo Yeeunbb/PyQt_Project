@@ -65,7 +65,6 @@ class MeasurementWidget(QWidget):
         self.play_btn.setIconSize(QSize(60, 60))
         self.play_btn.setStyleSheet("background-color: #55B0BC;")
 
-
         self.exit_btn = QPushButton('', self)
         self.exit_btn.setMinimumHeight(65)
         self.exit_btn.setMaximumWidth(85)
