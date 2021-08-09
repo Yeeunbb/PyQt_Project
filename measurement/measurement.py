@@ -19,6 +19,8 @@ class Triggers:
 
     play_trig = 0# -1 for not working, 0 for not selected, 1 for select
     play_mode = 0# 0 for normal, 1 for 0.5, 2 for 0.25
+    time_nv_flag = 0
+    time_val = 0
 
 
 class MeasurementWidget(QWidget):
@@ -27,6 +29,8 @@ class MeasurementWidget(QWidget):
         super().__init__()
 
         self.sound_flag = 0
+        self.time_nv_flag = 0
+        self.time_val = 0
 
         self.grid = QGridLayout()
         self.setLayout(self.grid)
@@ -135,6 +139,8 @@ class MeasurementWidget(QWidget):
         self.time_navigation_btn.setIcon(QIcon('./icons/time-navigator.png'))
         self.time_navigation_btn.setIconSize(QSize(60, 60))
         self.time_navigation_btn.setStyleSheet("background-color: #55B0BC;")
+        self.time_navigation_btn.clicked.connect(self.time_navigation_event)
+
 
         lbl_video = QLabel('Video')
         lbl_video.setMaximumWidth(1000)
@@ -243,6 +249,7 @@ class MeasurementWidget(QWidget):
         self.measurement_distance.setIconSize(QSize(60, 60))
         self.measurement_distance.setStyleSheet("background-color: #55B0BC;")
         self.grid.addWidget(self.measurement_distance, 1, 9)
+        self.measurement_distance.clicked.connect(self.measurement_event)
 
         self.stop_btn = QPushButton('',self)
         self.stop_btn.setMinimumHeight(65)
@@ -475,7 +482,64 @@ class MeasurementWidget(QWidget):
             Triggers.sound_trig = 0
             self.no_signal_btn.setIcon(QIcon('icons/signal.png'))
 
-# if pre_mode == 'None':
+    def time_navigation_event(self):
+        if self.time_nv_flag == 0: # init or time_navigation on
+            self.time_nv_flag = 1 # on
+
+            self.time_lbl = QLabel('0')
+            self.grid.addWidget(self.time_lbl, 0, 8)
+            self.time_lbl.setStyleSheet("margin-left: 2em;")
+
+            self.time_up_btn = QPushButton('', self)
+            self.time_up_btn.setMinimumHeight(65)
+            self.time_up_btn.setMaximumWidth(85)
+            self.time_up_btn.setIcon(QIcon('./icons/up-arrow.png'))
+            self.time_up_btn.setIconSize(QSize(60, 60))
+            self.time_up_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.time_up_btn, 1, 8)
+
+            self.slider = QSlider(Qt.Vertical, self)
+            self.slider.setRange(0, 50)
+            self.slider.setSingleStep(2)
+            self.slider.valueChanged.connect(self.slider_value_changed)
+            self.slider.setStyleSheet("margin-left: 3.5em; margin-bottom: 30px")
+            self.grid.addWidget(self.slider, 2, 8, 4, 2)
+
+            self.time_down_btn = QPushButton('', self)
+            self.time_down_btn.setMinimumHeight(65)
+            self.time_down_btn.setMaximumWidth(85)
+            self.time_down_btn.setIcon(QIcon('./icons/down-arrow.png'))
+            self.time_down_btn.setIconSize(QSize(60, 60))
+            self.time_down_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.time_down_btn, 6, 8)
+
+
+        else: # time_navigation off
+            self.time_nv_flag = 0 # off
+
+            self.grid.removeWidget(self.time_lbl)
+            self.time_lbl.deleteLater()
+            self.time_lbl = None
+
+            self.grid.removeWidget(self.time_up_btn)
+            self.grid.removeWidget(self.time_down_btn)
+            self.time_up_btn.deleteLater()
+            self.time_down_btn.deleteLater()
+            self.time_up_btn = None
+            self.time_down_btn = None
+
+            self.grid.removeWidget(self.slider)
+            self.slider.deleteLater()
+            self.slider = None
+
+    def slider_value_changed(self):
+        self.time_val = self.slider.value()
+        self.time_lbl.setText(str(self.time_val))
+
+
+
+
+        # if pre_mode == 'None':
         #     pass
         #
         # elif pre_mode == 'Smart':
