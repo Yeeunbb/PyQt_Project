@@ -3,18 +3,31 @@ import pyqtgraph as pg
 import FinanceDataReader as fdr
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, Qt
+# import sip
+
+class Triggers:
+    rec_trig = 0  # 0 for not selected, -1 for select
+    rec_num = 0 # 0 for normal, 1 for ultra
+
+    db_scaling_trig = 0 # 0 for not selected, 1 for select
+    db_scaling_mode = 0 # 0 for auto, 1 for smart, -1 for off
+
+    sound_trig = 0 # 주파수 0 for not selected, 1 for select
 
 
 class MeasurementWidget(QWidget):
 
     def __init__(self):
         super().__init__()
+        trigger = Triggers()
+        self.led_flag = 0
+        self.sound_flag = 0
     #     self.initUI()
     #
     # def initUI(self):
-        grid = QGridLayout()
-        self.setLayout(grid)
+        self.grid = QGridLayout()
+        self.setLayout(self.grid)
 
         self.rec_btn = QPushButton('', self)
         self.rec_btn.setMinimumHeight(65)
@@ -22,6 +35,7 @@ class MeasurementWidget(QWidget):
         self.rec_btn.setIcon(QIcon('./icons/rec.png'))
         self.rec_btn.setIconSize(QSize(60, 60))
         self.rec_btn.setStyleSheet("background-color: #55B0BC;")
+        self.rec_btn.clicked.connect(self.rec_start_event)
 
         self.capture_btn = QPushButton('', self)
         self.capture_btn.setMinimumHeight(65)
@@ -57,6 +71,7 @@ class MeasurementWidget(QWidget):
         self.led_btn.setIcon(QIcon('./icons/led.png'))
         self.led_btn.setIconSize(QSize(60, 60))
         self.led_btn.setStyleSheet("background-color: #55B0BC;")
+        self.led_btn.clicked.connect(self.led_control)
 
         self.play_btn = QPushButton('', self)
         self.play_btn.setMinimumHeight(65)
@@ -85,6 +100,7 @@ class MeasurementWidget(QWidget):
         self.db_scaling_btn.setIcon(QIcon('./icons/db-scaling.png'))
         self.db_scaling_btn.setIconSize(QSize(60, 60))
         self.db_scaling_btn.setStyleSheet("background-color: #55B0BC;")
+        self.db_scaling_btn.clicked.connect(self.db_scaling_event)
 
         self.time_marker_move_btn = QPushButton('', self)
         self.time_marker_move_btn.setMinimumHeight(65)
@@ -99,6 +115,7 @@ class MeasurementWidget(QWidget):
         self.sound_btn.setIcon(QIcon('./icons/sound.png'))
         self.sound_btn.setIconSize(QSize(60, 60))
         self.sound_btn.setStyleSheet("background-color: #55B0BC;")
+        self.sound_btn.clicked.connect(self.sound_control)
 
         self.time_setting_btn = QPushButton('', self)
         self.time_setting_btn.setMinimumHeight(65)
@@ -138,7 +155,7 @@ class MeasurementWidget(QWidget):
         lbl_bar2 = QLabel('Bar2')
         lbl_bar2.setMaximumWidth(50)
 
-        lbl_setting = QLabel('Setting')
+        lbl_setting = QLabel('')
         lbl_setting.setMaximumWidth(100)
 
 
@@ -155,33 +172,203 @@ class MeasurementWidget(QWidget):
         lbl_setting.setStyleSheet("border-style: solid;"
                                 "border-width: 1px;")
 
+        self.grid.addWidget(self.rec_btn, 0, 0)
+        self.grid.addWidget(self.capture_btn, 1, 0)
+        self.grid.addWidget(self.time_marker_btn, 2, 0)
+        self.grid.addWidget(self.file_open_btn, 3, 0)
+        self.grid.addWidget(self.file_save_btn, 4, 0)
+        self.grid.addWidget(self.led_btn, 5, 0)
+        self.grid.addWidget(self.play_btn, 6, 0)
 
-        grid.addWidget(self.rec_btn, 0, 0)
-        grid.addWidget(self.capture_btn, 1, 0)
-        grid.addWidget(self.time_marker_btn, 2, 0)
-        grid.addWidget(self.file_open_btn, 3, 0)
-        grid.addWidget(self.file_save_btn, 4, 0)
-        grid.addWidget(self.led_btn, 5, 0)
-        grid.addWidget(self.play_btn, 6, 0)
+        self.grid.addWidget(lbl_video, 0, 1, 4, 5)
+        self.grid.addWidget(lbl_graph1, 4, 1, 2, 5)
 
-        grid.addWidget(lbl_video, 0, 1, 4, 1)
-        grid.addWidget(lbl_graph1, 4, 1, 2, 1)
+        self.grid.addWidget(lbl_bar1, 0, 6, 4, 1)
+        self.grid.addWidget(lbl_bar2, 4, 6, 2, 1)
 
-        grid.addWidget(lbl_bar1, 0, 2, 4, 1)
-        grid.addWidget(lbl_bar2, 4, 2, 2, 1)
+        self.grid.addWidget(lbl_graph2, 4, 7, 2, 1)
 
-        grid.addWidget(lbl_graph2, 4, 3, 2, 1)
+        self.grid.addWidget(lbl_setting, 0, 8, 7, 1)
 
-        grid.addWidget(lbl_setting, 0, 4, 7, 1)
+        self.grid.addWidget(self.exit_btn, 0, 9)
+        self.grid.addWidget(self.video_btn, 1, 9)
+        self.grid.addWidget(self.db_scaling_btn, 2, 9)
+        self.grid.addWidget(self.time_marker_move_btn, 3, 9)
+        self.grid.addWidget(self.sound_btn, 4, 9)
+        self.grid.addWidget(self.time_setting_btn, 5, 9)
+        self.grid.addWidget(self.time_navigation_btn, 6, 9)
 
 
-        grid.addWidget(self.exit_btn, 0, 5)
-        grid.addWidget(self.video_btn, 1, 5)
-        grid.addWidget(self.db_scaling_btn, 2, 5)
-        grid.addWidget(self.time_marker_move_btn, 3, 5)
-        grid.addWidget(self.sound_btn, 4, 5)
-        grid.addWidget(self.time_setting_btn, 5, 5)
-        grid.addWidget(self.time_navigation_btn, 6, 5)
+        # self.grid.addWidget(self.rec_btn, 0, 0)
+        # self.grid.addWidget(self.capture_btn, 1, 0)
+        # self.grid.addWidget(self.time_marker_btn, 2, 0)
+        # self.grid.addWidget(self.file_open_btn, 3, 0)
+        # self.grid.addWidget(self.file_save_btn, 4, 0)
+        # self.grid.addWidget(self.led_btn, 5, 0)
+        # self.grid.addWidget(self.play_btn, 6, 0)
+        #
+        # self.grid.addWidget(lbl_video, 0, 1, 4, 1)
+        # self.grid.addWidget(lbl_graph1, 4, 1, 2, 1)
+        #
+        # self.grid.addWidget(lbl_bar1, 0, 2, 4, 1)
+        # self.grid.addWidget(lbl_bar2, 4, 2, 2, 1)
+        #
+        # self.grid.addWidget(lbl_graph2, 4, 3, 2, 1)
+        #
+        # self.grid.addWidget(lbl_setting, 0, 4, 7, 1)
+        #
+        #
+        # self.grid.addWidget(self.exit_btn, 0, 5)
+        # self.grid.addWidget(self.video_btn, 1, 5)
+        # self.grid.addWidget(self.db_scaling_btn, 2, 5)
+        # self.grid.addWidget(self.time_marker_move_btn, 3, 5)
+        # self.grid.addWidget(self.sound_btn, 4, 5)
+        # self.grid.addWidget(self.time_setting_btn, 5, 5)
+        # self.grid.addWidget(self.time_navigation_btn, 6, 5)
+
+    def rec_start_event(self):
+        if Triggers.rec_trig == 0:  # 대기상태라면 위젯 추가
+            Triggers.rec_trig += 1
+            self.rec_ultra = QPushButton('', self)
+            self.rec_ultra.setMinimumHeight(65)
+            self.rec_ultra.setMaximumWidth(85)
+            self.rec_ultra.setIcon(QIcon('./icons/rec.png'))
+            self.rec_ultra.setIconSize(QSize(60, 60))
+            self.rec_ultra.setStyleSheet("background-color: #55B0BC;")
+            self.rec_ultra.clicked.connect(self.rec_ultra_event)
+            self.grid.addWidget(self.rec_ultra, 0, 1)
+
+        elif Triggers.rec_trig > 0:  # 모드 선택 상태라면
+            self.grid.removeWidget(self.led_btn)
+            Triggers.rec_trig = 0
+            Triggers.rec_num = 0
+
+    def rec_ultra_event(self):
+        if Triggers.rec_trig > 0:
+            self.grid.removeWidget(self.rec_ultra)
+            Triggers.rec_trig = 0
+            Triggers.rec_num = 1
+
+    def led_control(self):
+        if self.led_flag == 0:
+            self.led_flag = 1
+            self.led_btn.setIcon(QIcon('icons/led.png'))
+        else:
+            self.led_flag = 0
+            self.led_btn.setIcon(QIcon('icons/led-off.png'))
+
+    def db_scaling_event(self):
+        if Triggers.db_scaling_trig == 0: # 슬라이더 열기
+            Triggers.db_scaling_trig += 1
+            self.mode_lbl = QLabel('Auto', self)
+            self.db_mode = QComboBox(self)
+            self.db_mode.addItem('Auto')
+            self.db_mode.addItem('Smart')
+            self.db_mode.addItem('Off')
+            self.db_mode.activated[str].connect(self.db_mode_change_event)
+            self.grid.addWidget(self.db_mode, 0, 8)
+
+            self.dynamic_lbl = QLabel('Dynamic', self)
+            self.grid.addWidget(self.dynamic_lbl, 1, 8)
+
+            self.slider = QSlider(Qt.Vertical, self)
+            self.slider.setRange(0.5, 50)
+            self.slider.setSingleStep(2)
+            self.grid.addWidget(self.slider, 3, 8, 4, 1)
+
+        elif Triggers.db_scaling_trig > 0: # 슬라이더 닫기
+            Triggers.db_scaling_trig = 0
+            self.grid.removeWidget(self.db_mode)
+            self.db_mode.deleteLater()
+            self.db_mode = None
+
+            self.grid.removeWidget(self.dynamic_lbl)
+            self.dynamic_lbl.deleteLater()
+            self.dynamic_lbl = None
+
+            self.grid.removeWidget(self.slider)
+            self.slider.deleteLater()
+            self.slider = None
+
+
+    def db_mode_change_event(self, text):
+        if Triggers.db_scaling_mode < 0:
+            self.grid.removeWidget(self.db_mode)
+            self.db_mode.deleteLater()
+            self.db_mode = None
+            self.grid.addWidget(self.db_mode, 0, 8)
+
+        self.mode_lbl.setText(text)
+        self.mode_lbl.adjustSize()
+
+        if text == 'Smart':
+            Triggers.db_scaling_mode = 1
+            self.crest_lbl = QLabel('Crest', self)
+            self.grid.addWidget(self.crest_lbl, 2, 8)
+
+        elif text == 'Off':
+            Triggers.db_scaling_mode = 2
+            self.crest_lbl = QLabel('최고 dB', self)
+            self.grid.addWidget(self.crest_lbl, 2, 8)
+        else:
+            Triggers.db_scaling_mode = 0
+            pass
+
+    def sound_control(self):
+        if self.sound_flag == 0: # init or sound off -> sound on
+            self.sound_flag = 1 # on
+            self.sound_btn.setIcon(QIcon('icons/sound.png'))
+
+            self.no_signal_btn = QPushButton('', self)
+            self.no_signal_btn.setMinimumHeight(65)
+            self.no_signal_btn.setMaximumWidth(85)
+            self.no_signal_btn.setIcon(QIcon('./icons/no-signal.png'))
+            self.no_signal_btn.setIconSize(QSize(60, 60))
+            self.no_signal_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.no_signal_btn, 0, 8)
+            self.no_signal_btn.clicked.connect(self.sound_event)
+
+            self.slider = QSlider(Qt.Vertical, self)
+            self.slider.setRange(0, 50)
+            self.slider.setSingleStep(2)
+            self.grid.addWidget(self.slider, 1, 8, 6, 1)
+
+        else: # sound on -> sound off
+            self.sound_flag = 0 # off
+            self.sound_btn.setIcon(QIcon('icons/sound-off.png'))
+            self.grid.removeWidget(self.no_signal_btn)
+            self.no_signal_btn.deleteLater()
+            self.no_signal_btn = None
+
+            self.grid.removeWidget(self.slider)
+            self.slider.deleteLater()
+            self.slider = None
+
+    def sound_event(self):
+        if Triggers.sound_trig == 0:  # 전영역 주파수
+            Triggers.sound_trig += 1
+            self.no_signal_btn.setIcon(QIcon('icons/no-signal.png'))
+
+        elif Triggers.sound_trig > 0:  # 선택 영역 주파수
+            Triggers.sound_trig = 0
+            self.no_signal_btn.setIcon(QIcon('icons/signal.png'))
+
+
+
+        # if pre_mode == 'None':
+        #     pass
+        #
+        # elif pre_mode == 'Smart':
+        #     self.grid.removeWidget(self.crest_lbl)
+        #     self.crest_lbl.deleteLater()
+        #     self.crest_lbl = None
+        #
+        # elif pre_mode == 'Off':
+        #     self.grid.removeWidget(self.high_db_lbl)
+        #     self.high_db_lbl.deleteLater()
+        #     self.high_db_lbl = None
+
+
 
 class MeasurementWindow(QMainWindow):
     def __init__(self):
