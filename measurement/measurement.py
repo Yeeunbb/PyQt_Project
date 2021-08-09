@@ -3,20 +3,30 @@ import pyqtgraph as pg
 import FinanceDataReader as fdr
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, Qt
 
+
+# import sip
 
 class Triggers:
-    rec_trig = 0  # 0 for not selected, -1 for select
-    rec_num = 0  # 0 for normal, 1 for ultra
-    led_flag = 0
+    rec_trig = 0  # 0 for not selected, 1 for select
+    rec_mode = 0  # 0 for normal, 1 for ultra
+
+    led_mode = 0  # 0 for on, 1 for off
+
+    db_scaling_trig = 0  # 0 for not selected, 1 for select
+    db_scaling_mode = 0  # 0 for auto, 1 for smart, -1 for off
+
+    sound_trig = 0  # 주파수 0 for not selected, 1 for select
 
 
 class MeasurementWidget(QWidget):
 
     def __init__(self):
         super().__init__()
-        trigger = Triggers()
+
+        self.led_flag = 0
+        self.sound_flag = 0
 
         self.grid = QGridLayout()
         self.setLayout(self.grid)
@@ -92,6 +102,7 @@ class MeasurementWidget(QWidget):
         self.db_scaling_btn.setIcon(QIcon('./icons/db-scaling.png'))
         self.db_scaling_btn.setIconSize(QSize(60, 60))
         self.db_scaling_btn.setStyleSheet("background-color: #55B0BC;")
+        self.db_scaling_btn.clicked.connect(self.db_scaling_event)
 
         self.time_marker_move_btn = QPushButton('', self)
         self.time_marker_move_btn.setMinimumHeight(65)
@@ -106,6 +117,7 @@ class MeasurementWidget(QWidget):
         self.sound_btn.setIcon(QIcon('./icons/sound.png'))
         self.sound_btn.setIconSize(QSize(60, 60))
         self.sound_btn.setStyleSheet("background-color: #55B0BC;")
+        self.sound_btn.clicked.connect(self.sound_control)
 
         self.time_setting_btn = QPushButton('', self)
         self.time_setting_btn.setMinimumHeight(65)
@@ -144,7 +156,7 @@ class MeasurementWidget(QWidget):
         lbl_bar2 = QLabel('Bar2')
         lbl_bar2.setMaximumWidth(50)
 
-        lbl_setting = QLabel('Setting')
+        lbl_setting = QLabel('')
         lbl_setting.setMaximumWidth(100)
 
         lbl_video.setStyleSheet("border-style: solid;"
@@ -196,12 +208,36 @@ class MeasurementWidget(QWidget):
             self.rec_ultra.setIconSize(QSize(60, 60))
             self.rec_ultra.setStyleSheet("background-color: #55B0BC;")
             self.rec_ultra.clicked.connect(self.rec_ultra_event)
+
+            self.video_btn.deleteLater()
+
+            self.measurement_distance = QPushButton('', self)
+            self.measurement_distance.setMinimumHeight(65)
+            self.measurement_distance.setMaximumWidth(85)
+            self.measurement_distance.setIcon(QIcon('./icons/measure-distance.png'))
+            self.measurement_distance.setIconSize(QSize(60, 60))
+            self.measurement_distance.setStyleSheet("background-color: #55B0BC;")
+
             self.grid.addWidget(self.rec_ultra, 0, 1)
+            self.grid.addWidget(self.measurement_distance, 1, 9)
+
+
 
         elif Triggers.rec_trig > 0:  # 모드 선택 상태라면
             self.grid.removeWidget(self.rec_ultra)
+            self.grid.removeWidget(self.rec_btn)
             self.rec_ultra.deleteLater()
+            self.rec_btn.deleteLater()
             self.rec_ultra = None
+
+            self.stop_btn = QPushButton('', self)
+            self.stop_btn.setMinimumHeight(65)
+            self.stop_btn.setMaximumWidth(85)
+            self.stop_btn.setIcon(QIcon('./icons/stop.png'))
+            self.stop_btn.setIconSize(QSize(60, 60))
+            self.stop_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.stop_btn, 0, 0)
+
             Triggers.rec_trig = 0
             Triggers.rec_num = 0
 
@@ -224,6 +260,114 @@ class MeasurementWidget(QWidget):
         else:
             Triggers.led_flag = 0
             self.led_btn.setIcon(QIcon('icons/led-off.png'))
+
+    def db_scaling_event(self):
+        if Triggers.db_scaling_trig == 0:  # 슬라이더 열기
+            Triggers.db_scaling_trig += 1
+            self.mode_lbl = QLabel('Auto', self)
+            self.db_mode = QComboBox(self)
+            self.db_mode.addItem('Auto')
+            self.db_mode.addItem('Smart')
+            self.db_mode.addItem('Off')
+            self.db_mode.activated[str].connect(self.db_mode_change_event)
+            self.grid.addWidget(self.db_mode, 0, 8)
+
+            self.dynamic_lbl = QLabel('Dynamic', self)
+            self.grid.addWidget(self.dynamic_lbl, 1, 8)
+
+            self.slider = QSlider(Qt.Vertical, self)
+            self.slider.setRange(0.5, 50)
+            self.slider.setSingleStep(2)
+            self.grid.addWidget(self.slider, 3, 8, 4, 1)
+
+        elif Triggers.db_scaling_trig > 0:  # 슬라이더 닫기
+            Triggers.db_scaling_trig = 0
+            self.grid.removeWidget(self.db_mode)
+            self.db_mode.deleteLater()
+            self.db_mode = None
+
+            self.grid.removeWidget(self.dynamic_lbl)
+            self.dynamic_lbl.deleteLater()
+            self.dynamic_lbl = None
+
+            self.grid.removeWidget(self.slider)
+            self.slider.deleteLater()
+            self.slider = None
+
+    def db_mode_change_event(self, text):
+        if Triggers.db_scaling_mode < 0:
+            self.grid.removeWidget(self.db_mode)
+            self.db_mode.deleteLater()
+            self.db_mode = None
+            self.grid.addWidget(self.db_mode, 0, 8)
+
+        self.mode_lbl.setText(text)
+        self.mode_lbl.adjustSize()
+
+        if text == 'Smart':
+            Triggers.db_scaling_mode = 1
+            self.crest_lbl = QLabel('Crest', self)
+            self.grid.addWidget(self.crest_lbl, 2, 8)
+
+        elif text == 'Off':
+            Triggers.db_scaling_mode = 2
+            self.crest_lbl = QLabel('최고 dB', self)
+            self.grid.addWidget(self.crest_lbl, 2, 8)
+        else:
+            Triggers.db_scaling_mode = 0
+            pass
+
+    def sound_control(self):
+        if self.sound_flag == 0:  # init or sound off -> sound on
+            self.sound_flag = 1  # on
+            self.sound_btn.setIcon(QIcon('icons/sound.png'))
+
+            self.no_signal_btn = QPushButton('', self)
+            self.no_signal_btn.setMinimumHeight(65)
+            self.no_signal_btn.setMaximumWidth(85)
+            self.no_signal_btn.setIcon(QIcon('./icons/no-signal.png'))
+            self.no_signal_btn.setIconSize(QSize(60, 60))
+            self.no_signal_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.no_signal_btn, 0, 8)
+            self.no_signal_btn.clicked.connect(self.sound_event)
+
+            self.slider = QSlider(Qt.Vertical, self)
+            self.slider.setRange(0, 50)
+            self.slider.setSingleStep(2)
+            self.grid.addWidget(self.slider, 1, 8, 6, 1)
+
+        else:  # sound on -> sound off
+            self.sound_flag = 0  # off
+            self.sound_btn.setIcon(QIcon('icons/sound-off.png'))
+            self.grid.removeWidget(self.no_signal_btn)
+            self.no_signal_btn.deleteLater()
+            self.no_signal_btn = None
+
+            self.grid.removeWidget(self.slider)
+            self.slider.deleteLater()
+            self.slider = None
+
+    def sound_event(self):
+        if Triggers.sound_trig == 0:  # 전영역 주파수
+            Triggers.sound_trig += 1
+            self.no_signal_btn.setIcon(QIcon('icons/no-signal.png'))
+
+        elif Triggers.sound_trig > 0:  # 선택 영역 주파수
+            Triggers.sound_trig = 0
+            self.no_signal_btn.setIcon(QIcon('icons/signal.png'))
+
+        # if pre_mode == 'None':
+        #     pass
+        #
+        # elif pre_mode == 'Smart':
+        #     self.grid.removeWidget(self.crest_lbl)
+        #     self.crest_lbl.deleteLater()
+        #     self.crest_lbl = None
+        #
+        # elif pre_mode == 'Off':
+        #     self.grid.removeWidget(self.high_db_lbl)
+        #     self.high_db_lbl.deleteLater()
+        #     self.high_db_lbl = None
 
 
 class MeasurementWindow(QMainWindow):
@@ -251,12 +395,10 @@ class MeasurementWindow(QMainWindow):
         wg = MeasurementWidget()
         self.setCentralWidget(wg)
 
-        # self.setGeometry(50, 50, 720, 480)
         self.setWindowTitle('Sound Cam')
         self.resize(720, 480)
         self.show()
 
-        # self.show()
 
 # if __name__ == '__main__':
 #    app = QApplication(sys.argv)
