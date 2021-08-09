@@ -25,7 +25,6 @@ class MeasurementWidget(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.led_flag = 0
         self.sound_flag = 0
 
         self.grid = QGridLayout()
@@ -53,6 +52,7 @@ class MeasurementWidget(QWidget):
         self.time_marker_btn.setIconSize(QSize(60, 60))
         self.time_marker_btn.setStyleSheet("background-color: #55B0BC;")
 
+        # color = rgb()
         self.file_open_btn = QPushButton('', self)
         self.file_open_btn.setMinimumHeight(65)
         self.file_open_btn.setMaximumWidth(85)
@@ -198,6 +198,7 @@ class MeasurementWidget(QWidget):
         self.grid.addWidget(self.time_setting_btn, 5, 9)
         self.grid.addWidget(self.time_navigation_btn, 6, 9)
 
+    # normal mode 측정 설정
     def rec_start_event(self):
         if Triggers.rec_trig == 0:  # 대기상태라면 위젯 추가
             Triggers.rec_trig += 1
@@ -209,56 +210,77 @@ class MeasurementWidget(QWidget):
             self.rec_ultra.setStyleSheet("background-color: #55B0BC;")
             self.rec_ultra.clicked.connect(self.rec_ultra_event)
 
-            self.video_btn.deleteLater()
-
-            self.measurement_distance = QPushButton('', self)
-            self.measurement_distance.setMinimumHeight(65)
-            self.measurement_distance.setMaximumWidth(85)
-            self.measurement_distance.setIcon(QIcon('./icons/measure-distance.png'))
-            self.measurement_distance.setIconSize(QSize(60, 60))
-            self.measurement_distance.setStyleSheet("background-color: #55B0BC;")
-
             self.grid.addWidget(self.rec_ultra, 0, 1)
-            self.grid.addWidget(self.measurement_distance, 1, 9)
-
-
 
         elif Triggers.rec_trig > 0:  # 모드 선택 상태라면
-            self.grid.removeWidget(self.rec_ultra)
-            self.grid.removeWidget(self.rec_btn)
-            self.rec_ultra.deleteLater()
-            self.rec_btn.deleteLater()
-            self.rec_ultra = None
-
-            self.stop_btn = QPushButton('', self)
-            self.stop_btn.setMinimumHeight(65)
-            self.stop_btn.setMaximumWidth(85)
-            self.stop_btn.setIcon(QIcon('./icons/stop.png'))
-            self.stop_btn.setIconSize(QSize(60, 60))
-            self.stop_btn.setStyleSheet("background-color: #55B0BC;")
-            self.grid.addWidget(self.stop_btn, 0, 0)
-
+            self.reformat_btns()
             Triggers.rec_trig = 0
             Triggers.rec_num = 0
-
             # print(Triggers.rec_num, "normal mode")
 
+    # ultra mode 측정 설정
     def rec_ultra_event(self):
         if Triggers.rec_trig > 0:
-            self.grid.removeWidget(self.rec_ultra)
-            self.rec_ultra.deleteLater()
-            self.rec_ultra = None
+            self.reformat_btns()
             Triggers.rec_trig = 0
             Triggers.rec_num = 1
-
             # print(Triggers.rec_num, "ultra mode")
 
+    # 측정 시작 후 버튼 변경
+    def reformat_btns(self):
+        self.grid.removeWidget(self.rec_ultra)
+        self.grid.removeWidget(self.rec_btn)
+        self.grid.removeWidget(self.time_marker_move_btn)
+        self.rec_ultra.deleteLater()
+        self.rec_ultra = None
+
+        self.measurement_distance = QPushButton('', self)
+        self.measurement_distance.setMinimumHeight(65)
+        self.measurement_distance.setMaximumWidth(85)
+        self.measurement_distance.setIcon(QIcon('./icons/measure-distance.png'))
+        self.measurement_distance.setIconSize(QSize(60, 60))
+        self.measurement_distance.setStyleSheet("background-color: #55B0BC;")
+        self.grid.addWidget(self.measurement_distance, 1, 9)
+
+        self.stop_btn = QPushButton('', self)
+        self.stop_btn.setMinimumHeight(65)
+        self.stop_btn.setMaximumWidth(85)
+        self.stop_btn.setIcon(QIcon('./icons/stop.png'))
+        self.stop_btn.setIconSize(QSize(60, 60))
+        self.stop_btn.setStyleSheet("background-color: #55B0BC;")
+        self.grid.addWidget(self.stop_btn, 0, 0)
+        self.stop_btn.clicked.connect(self.stop_measure)
+
+        self.frequency_btn = QPushButton('', self)
+        self.frequency_btn.setMinimumHeight(65)
+        self.frequency_btn.setMaximumWidth(85)
+        self.frequency_btn.setIcon(QIcon('./icons/frequency.png'))
+        self.frequency_btn.setIconSize(QSize(60, 60))
+        self.frequency_btn.setStyleSheet("background-color: #55B0BC;")
+        self.grid.addWidget(self.frequency_btn, 3, 9)
+
+    # 측정 종료 후 복귀
+    def stop_measure(self):
+        self.grid.removeWidget(self.stop_btn)
+        self.grid.removeWidget(self.frequency_btn)
+        self.grid.removeWidget(self.measurement_distance)
+        self.stop_btn.deleteLater()
+        self.frequency_btn.deleteLater()
+        self.measurement_distance.deleteLater()
+
+        self.grid.addWidget(self.rec_btn, 0, 0)
+        self.grid.addWidget(self.time_marker_move_btn, 3, 9)
+        self.grid.addWidget(self.video_btn, 1, 9)
+
+        Triggers.rec_trig = 0
+        Triggers.rec_mode = 0
+
     def led_control(self):
-        if self.led_flag == 0:
-            Triggers.led_flag = 1
+        if Triggers.led_mode == 0:
+            Triggers.led_mode = 1
             self.led_btn.setIcon(QIcon('icons/led.png'))
         else:
-            Triggers.led_flag = 0
+            Triggers.led_mode = 0
             self.led_btn.setIcon(QIcon('icons/led-off.png'))
 
     def db_scaling_event(self):
