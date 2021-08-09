@@ -6,8 +6,6 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSize, Qt
 
 
-# import sip
-
 class Triggers:
     rec_trig = 0# 0 for not selected, 1 for select
     rec_mode = 0# 0 for normal, 1 for ultra
@@ -352,6 +350,34 @@ class MeasurementWidget(QWidget):
         else:
             Triggers.led_mode = 0
             self.led_btn.setIcon(QIcon('icons/led-off.png'))
+
+    def measurement_event(self):
+        # cur_measure_value = 0
+        if Triggers.measurement_trig == 0:  # 슬라이더 열기
+            Triggers.measurement_trig += 1
+            self.measure_lbl = QLabel('측정거리', self)
+            self.grid.addWidget(self.measure_lbl, 0, 8)
+
+            self.measure_slider = QSlider(Qt.Vertical, self)
+            self.measure_slider.setRange(0, 50)
+            self.measure_slider.setSingleStep(2)
+            self.grid.addWidget(self.measure_slider, 2, 8, 5, 1)
+            # self.measure_slider.setValue(cur_measure_value)
+            # self.measure_slider.valueChanged[int].connect(self.valuechange)
+            # print(cur_measure_value)
+
+        elif Triggers.measurement_trig > 0:  # 슬라이더 닫기
+            Triggers.measurement_trig = 0
+            self.grid.removeWidget(self.measure_lbl)
+            self.measure_lbl.deleteLater()
+            self.measure_lbl = None
+
+            self.grid.removeWidget(self.measure_slider)
+            self.measure_slider.deleteLater()
+            self.measure_slider = None
+
+    def valuechange(self, value):
+        self.__init__(value)
 
     def db_scaling_event(self):
         if Triggers.db_scaling_trig == 0: # 슬라이더 열기
