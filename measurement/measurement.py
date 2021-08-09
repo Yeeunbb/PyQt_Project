@@ -251,6 +251,7 @@ class MeasurementWidget(QWidget):
         self.measurement_distance.setIconSize(QSize(60, 60))
         self.measurement_distance.setStyleSheet("background-color: #55B0BC;")
         self.grid.addWidget(self.measurement_distance, 1, 9)
+        self.measurement_distance.clicked.connect(self.measurement_event)
 
         self.stop_btn = QPushButton('',self)
         self.stop_btn.setMinimumHeight(65)
