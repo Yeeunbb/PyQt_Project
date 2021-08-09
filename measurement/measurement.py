@@ -4,28 +4,30 @@ import FinanceDataReader as fdr
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSize, Qt
+
+
 # import sip
 
 class Triggers:
-    rec_trig = 0  # 0 for not selected, -1 for select
-    rec_num = 0 # 0 for normal, 1 for ultra
+    rec_trig = 0  # 0 for not selected, 1 for select
+    rec_mode = 0  # 0 for normal, 1 for ultra
 
-    db_scaling_trig = 0 # 0 for not selected, 1 for select
-    db_scaling_mode = 0 # 0 for auto, 1 for smart, -1 for off
+    led_mode = 0  # 0 for on, 1 for off
 
-    sound_trig = 0 # 주파수 0 for not selected, 1 for select
+    db_scaling_trig = 0  # 0 for not selected, 1 for select
+    db_scaling_mode = 0  # 0 for auto, 1 for smart, -1 for off
+
+    sound_trig = 0  # 주파수 0 for not selected, 1 for select
 
 
 class MeasurementWidget(QWidget):
 
     def __init__(self):
         super().__init__()
-        trigger = Triggers()
+
         self.led_flag = 0
         self.sound_flag = 0
-    #     self.initUI()
-    #
-    # def initUI(self):
+
         self.grid = QGridLayout()
         self.setLayout(self.grid)
 
@@ -131,7 +133,6 @@ class MeasurementWidget(QWidget):
         self.time_navigation_btn.setIconSize(QSize(60, 60))
         self.time_navigation_btn.setStyleSheet("background-color: #55B0BC;")
 
-
         lbl_video = QLabel('Video')
         lbl_video.setMaximumWidth(1000)
 
@@ -158,19 +159,18 @@ class MeasurementWidget(QWidget):
         lbl_setting = QLabel('')
         lbl_setting.setMaximumWidth(100)
 
-
         lbl_video.setStyleSheet("border-style: solid;"
                                 "border-width: 1px;")
         lbl_graph1.setStyleSheet("border-style: solid;"
-                                "border-width: 1px;")
+                                 "border-width: 1px;")
         lbl_graph2.setStyleSheet("border-style: solid;"
-                                "border-width: 1px;")
+                                 "border-width: 1px;")
         lbl_bar1.setStyleSheet("border-style: solid;"
-                                "border-width: 1px;")
+                               "border-width: 1px;")
         lbl_bar2.setStyleSheet("border-style: solid;"
-                                "border-width: 1px;")
+                               "border-width: 1px;")
         lbl_setting.setStyleSheet("border-style: solid;"
-                                "border-width: 1px;")
+                                  "border-width: 1px;")
 
         self.grid.addWidget(self.rec_btn, 0, 0)
         self.grid.addWidget(self.capture_btn, 1, 0)
@@ -198,34 +198,6 @@ class MeasurementWidget(QWidget):
         self.grid.addWidget(self.time_setting_btn, 5, 9)
         self.grid.addWidget(self.time_navigation_btn, 6, 9)
 
-
-        # self.grid.addWidget(self.rec_btn, 0, 0)
-        # self.grid.addWidget(self.capture_btn, 1, 0)
-        # self.grid.addWidget(self.time_marker_btn, 2, 0)
-        # self.grid.addWidget(self.file_open_btn, 3, 0)
-        # self.grid.addWidget(self.file_save_btn, 4, 0)
-        # self.grid.addWidget(self.led_btn, 5, 0)
-        # self.grid.addWidget(self.play_btn, 6, 0)
-        #
-        # self.grid.addWidget(lbl_video, 0, 1, 4, 1)
-        # self.grid.addWidget(lbl_graph1, 4, 1, 2, 1)
-        #
-        # self.grid.addWidget(lbl_bar1, 0, 2, 4, 1)
-        # self.grid.addWidget(lbl_bar2, 4, 2, 2, 1)
-        #
-        # self.grid.addWidget(lbl_graph2, 4, 3, 2, 1)
-        #
-        # self.grid.addWidget(lbl_setting, 0, 4, 7, 1)
-        #
-        #
-        # self.grid.addWidget(self.exit_btn, 0, 5)
-        # self.grid.addWidget(self.video_btn, 1, 5)
-        # self.grid.addWidget(self.db_scaling_btn, 2, 5)
-        # self.grid.addWidget(self.time_marker_move_btn, 3, 5)
-        # self.grid.addWidget(self.sound_btn, 4, 5)
-        # self.grid.addWidget(self.time_setting_btn, 5, 5)
-        # self.grid.addWidget(self.time_navigation_btn, 6, 5)
-
     def rec_start_event(self):
         if Triggers.rec_trig == 0:  # 대기상태라면 위젯 추가
             Triggers.rec_trig += 1
@@ -236,25 +208,57 @@ class MeasurementWidget(QWidget):
             self.rec_ultra.setIconSize(QSize(60, 60))
             self.rec_ultra.setStyleSheet("background-color: #55B0BC;")
             self.rec_ultra.clicked.connect(self.rec_ultra_event)
+
+            self.video_btn.deleteLater()
+
+            self.measurement_distance = QPushButton('', self)
+            self.measurement_distance.setMinimumHeight(65)
+            self.measurement_distance.setMaximumWidth(85)
+            self.measurement_distance.setIcon(QIcon('./icons/measure-distance.png'))
+            self.measurement_distance.setIconSize(QSize(60, 60))
+            self.measurement_distance.setStyleSheet("background-color: #55B0BC;")
+
             self.grid.addWidget(self.rec_ultra, 0, 1)
+            self.grid.addWidget(self.measurement_distance, 1, 9)
+
+
 
         elif Triggers.rec_trig > 0:  # 모드 선택 상태라면
-            self.grid.removeWidget(self.led_btn)
+            self.grid.removeWidget(self.rec_ultra)
+            self.grid.removeWidget(self.rec_btn)
+            self.rec_ultra.deleteLater()
+            self.rec_btn.deleteLater()
+            self.rec_ultra = None
+
+            self.stop_btn = QPushButton('', self)
+            self.stop_btn.setMinimumHeight(65)
+            self.stop_btn.setMaximumWidth(85)
+            self.stop_btn.setIcon(QIcon('./icons/stop.png'))
+            self.stop_btn.setIconSize(QSize(60, 60))
+            self.stop_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.stop_btn, 0, 0)
+
             Triggers.rec_trig = 0
             Triggers.rec_num = 0
+
+            # print(Triggers.rec_num, "normal mode")
 
     def rec_ultra_event(self):
         if Triggers.rec_trig > 0:
             self.grid.removeWidget(self.rec_ultra)
+            self.rec_ultra.deleteLater()
+            self.rec_ultra = None
             Triggers.rec_trig = 0
             Triggers.rec_num = 1
 
+            # print(Triggers.rec_num, "ultra mode")
+
     def led_control(self):
         if self.led_flag == 0:
-            self.led_flag = 1
+            Triggers.led_flag = 1
             self.led_btn.setIcon(QIcon('icons/led.png'))
         else:
-            self.led_flag = 0
+            Triggers.led_flag = 0
             self.led_btn.setIcon(QIcon('icons/led-off.png'))
 
     def db_scaling_event(self):
@@ -377,9 +381,9 @@ class MeasurementWindow(QMainWindow):
 
     def initUI(self):
         exitAction = QAction('Exit', self)
-        exitAction.setShortcut('Ctrl+Q') # 단축키
-        exitAction.setStatusTip('Exit application') # 상태팁
-        exitAction.triggered.connect(qApp.quit) # 어플리케이션 종료
+        exitAction.setShortcut('Ctrl+Q')  # 단축키
+        exitAction.setStatusTip('Exit application')  # 상태팁
+        exitAction.triggered.connect(qApp.quit)  # 어플리케이션 종료
 
         self.statusBar()
 
@@ -395,12 +399,10 @@ class MeasurementWindow(QMainWindow):
         wg = MeasurementWidget()
         self.setCentralWidget(wg)
 
-        # self.setGeometry(50, 50, 720, 480)
         self.setWindowTitle('Sound Cam')
         self.resize(720, 480)
         self.show()
 
-        # self.show()
 
 # if __name__ == '__main__':
 #    app = QApplication(sys.argv)
