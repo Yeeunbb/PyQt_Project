@@ -21,8 +21,12 @@ class Triggers:
 
     play_trig = 0# -1 for not working, 0 for not selected, 1 for select
     play_mode = 0# 0 for normal, 1 for 0.5, 2 for 0.25
-    time_nv_flag = 0
-    time_val = 0
+
+    time_nv_flag = 0 # 0 for not selected, 1 for select
+    time_val = 0 # time navigation slider value
+
+    time_st_flag = 0  # 0 for not selected, 1 for select
+    video_flag = 0
 
 
 class MeasurementWidget(QWidget):
@@ -33,6 +37,8 @@ class MeasurementWidget(QWidget):
         self.sound_flag = 0
         self.time_nv_flag = 0
         self.time_val = 0
+        self.time_st_flag = 0
+        self.video_flag = 0
 
         self.grid = QGridLayout()
         self.setLayout(self.grid)
@@ -104,6 +110,7 @@ class MeasurementWidget(QWidget):
         self.video_btn.setIcon(QIcon('./icons/video.png'))
         self.video_btn.setIconSize(QSize(60, 60))
         self.video_btn.setStyleSheet("background-color: #55B0BC;")
+        self.video_btn.clicked.connect(self.video_event)
 
         self.db_scaling_btn = QPushButton('',self)
         self.db_scaling_btn.setMinimumHeight(65)
@@ -134,6 +141,7 @@ class MeasurementWidget(QWidget):
         self.time_setting_btn.setIcon(QIcon('./icons/time-setting.png'))
         self.time_setting_btn.setIconSize(QSize(60, 60))
         self.time_setting_btn.setStyleSheet("background-color: #55B0BC;")
+        self.time_setting_btn.clicked.connect(self.time_setting_event)
 
         self.time_navigation_btn = QPushButton('',self)
         self.time_navigation_btn.setMinimumHeight(65)
@@ -360,6 +368,61 @@ class MeasurementWidget(QWidget):
             Triggers.led_mode = 0
             self.led_btn.setIcon(QIcon('icons/led-off.png'))
 
+    def video_event(self):
+        if self.video_flag == 0:
+            self.video_flag = 1  # on
+
+            self.video_sp_btn = QPushButton('', self) #video start point setting button
+            self.video_sp_btn.setMinimumHeight(65)
+            self.video_sp_btn.setMaximumWidth(85)
+            self.video_sp_btn.setIcon(QIcon('./icons/video-editing.png'))
+            self.video_sp_btn.setIconSize(QSize(60, 60))
+            self.video_sp_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.video_sp_btn, 1, 8)
+
+            self.video_ep_btn = QPushButton('', self) #video end point setting button
+            self.video_ep_btn.setMinimumHeight(65)
+            self.video_ep_btn.setMaximumWidth(85)
+            self.video_ep_btn.setIcon(QIcon('./icons/video-editing.png'))
+            self.video_ep_btn.setIconSize(QSize(60, 60))
+            self.video_ep_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.video_ep_btn, 2, 8)
+
+            self.video_rs_btn = QPushButton('', self) #video remove setting button
+            self.video_rs_btn.setMinimumHeight(65)
+            self.video_rs_btn.setMaximumWidth(85)
+            self.video_rs_btn.setIcon(QIcon('./icons/video-editing.png'))
+            self.video_rs_btn.setIconSize(QSize(60, 60))
+            self.video_rs_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.video_rs_btn, 3, 8)
+
+            self.video_conv_btn = QPushButton('', self) #video conversion button
+            self.video_conv_btn.setMinimumHeight(65)
+            self.video_conv_btn.setMaximumWidth(85)
+            self.video_conv_btn.setIcon(QIcon('./icons/video_conversion.png'))
+            self.video_conv_btn.setIconSize(QSize(60, 60))
+            self.video_conv_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.video_conv_btn, 4, 8)
+        else:
+            self.video_flag = 0  # off
+
+            self.grid.removeWidget(self.video_sp_btn)
+            self.video_sp_btn.deleteLater()
+            self.video_sp_btn = None
+
+            self.grid.removeWidget(self.video_ep_btn)
+            self.video_ep_btn.deleteLater()
+            self.video_ep_btn = None
+
+            self.grid.removeWidget(self.video_rs_btn)
+            self.video_rs_btn.deleteLater()
+            self.video_rs_btn = None
+
+            self.grid.removeWidget(self.video_conv_btn)
+            self.video_conv_btn.deleteLater()
+            self.video_conv_btn = None
+
+
     def measurement_event(self):
         # cur_measure_value = 0
         if Triggers.measurement_trig == 0:  # 슬라이더 열기
@@ -483,6 +546,33 @@ class MeasurementWidget(QWidget):
         elif Triggers.sound_trig > 0: # 선택 영역 주파수
             Triggers.sound_trig = 0
             self.no_signal_btn.setIcon(QIcon('icons/signal.png'))
+
+#time setting (측정 영상 저장 시간 설정)
+    def time_setting_event(self):
+        if self.time_st_flag == 0: # init or time_setting on
+            self.time_st_flag = 1 # on
+
+            self.saved_lbl = QLabel('저장시간', self)
+            self.grid.addWidget(self.saved_lbl, 0, 8)
+
+            self.time_set = QComboBox(self)
+            self.time_set.addItem('10 초')
+            self.time_set.addItem('30 초')
+            self.time_set.addItem('60 초')
+            self.grid.addWidget(self.time_set, 1, 8)
+
+        else: # time_setting off
+            self.time_st_flag = 0 # off
+            #print(self.time_set.currentText())
+
+            self.grid.removeWidget(self.saved_lbl)
+            self.saved_lbl.deleteLater()
+            self.saved_lbl = None
+
+            self.grid.removeWidget(self.time_set)
+            self.time_set.deleteLater()
+            self.time_set = None
+
 
     def time_navigation_event(self):
         if self.time_nv_flag == 0: # init or time_navigation on
