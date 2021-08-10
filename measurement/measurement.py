@@ -12,6 +12,8 @@ class Triggers:
 
     led_mode = 0# 0 for on, 1 for off
 
+    measurement_trig = 0# 0 for not selected,1 for select
+
     db_scaling_trig = 0# 0 for not selected, 1 for select
     db_scaling_mode = 0# 0 for auto, 1 for smart, -1 for off
 
@@ -474,11 +476,11 @@ class MeasurementWidget(QWidget):
             self.slider = None
 
     def sound_event(self):
-        if Triggers.sound_trig == 0:#전영역 주파수
+        if Triggers.sound_trig == 0: # 전영역 주파수
             Triggers.sound_trig += 1
             self.no_signal_btn.setIcon(QIcon('icons/no-signal.png'))
 
-        elif Triggers.sound_trig > 0:#선택 영역 주파수
+        elif Triggers.sound_trig > 0: # 선택 영역 주파수
             Triggers.sound_trig = 0
             self.no_signal_btn.setIcon(QIcon('icons/signal.png'))
 
@@ -535,8 +537,6 @@ class MeasurementWidget(QWidget):
     def slider_value_changed(self):
         self.time_val = self.slider.value()
         self.time_lbl.setText(str(self.time_val))
-
-
 
 
         # if pre_mode == 'None':
