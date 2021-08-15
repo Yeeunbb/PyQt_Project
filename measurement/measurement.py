@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSize, Qt
 from qtrangeslider import QRangeSlider
+import measurement.screenshotclass as ssc
 
 
 class Triggers:
@@ -62,6 +63,7 @@ class MeasurementWidget(QWidget):
         self.capture_btn.setIcon(QIcon('./icons/capture.png'))
         self.capture_btn.setIconSize(QSize(60, 60))
         self.capture_btn.setStyleSheet("background-color: #55B0BC;")
+        self.capture_btn.clicked.connect(self.capture_event)
 
         self.time_marker_btn = QPushButton('',self)
         self.time_marker_btn.setMinimumHeight(65)
@@ -218,6 +220,12 @@ class MeasurementWidget(QWidget):
         self.grid.addWidget(self.sound_btn, 4, 9)
         self.grid.addWidget(self.time_setting_btn, 5, 9)
         self.grid.addWidget(self.time_navigation_btn, 6, 9)
+
+    # screenshot event
+    def capture_event(self):
+        self.screenshot = ssc.Screenshot()
+        self.screenshot.show()
+        self.screenshot.close()
 
     # normal mode측정 설정
     def rec_start_event(self):
@@ -572,7 +580,6 @@ class MeasurementWidget(QWidget):
                 self.octave_lbl.deleteLater()
                 self.octave_lbl = None
 
-
     def frequency_octave(self):
         self.grid.removeWidget(self.frequency_mode)
         self.frequency_mode.deleteLater()
@@ -723,6 +730,7 @@ class MeasurementWidget(QWidget):
             self.time_up_btn.setIcon(QIcon('./icons/up-arrow.png'))
             self.time_up_btn.setIconSize(QSize(60, 60))
             self.time_up_btn.setStyleSheet("background-color: #55B0BC;")
+            self.time_up_btn.clicked.connect(self.time_up_event)
             self.grid.addWidget(self.time_up_btn, 1, 8)
 
             self.slider = QSlider(Qt.Vertical, self)
@@ -738,6 +746,7 @@ class MeasurementWidget(QWidget):
             self.time_down_btn.setIcon(QIcon('./icons/down-arrow.png'))
             self.time_down_btn.setIconSize(QSize(60, 60))
             self.time_down_btn.setStyleSheet("background-color: #55B0BC;")
+            self.time_down_btn.clicked.connect(self.time_down_event)
             self.grid.addWidget(self.time_down_btn, 6, 8)
 
 
@@ -759,10 +768,20 @@ class MeasurementWidget(QWidget):
             self.slider.deleteLater()
             self.slider = None
 
+    #time_navigation_arrow_btn_event
+    def time_up_event(self):
+        self.now_time = self.slider.value()
+        self.slider.setValue(self.now_time + 1)
+
+    def time_down_event(self):
+        self.now_time = self.slider.value()
+        self.slider.setValue(self.now_time - 1)
+
     def slider_value_changed(self):
         self.time_val = self.slider.value()
         self.time_lbl.setText(str(self.time_val))
 
+    #frequency_slider_event
     def frequency_slider_value_changed(self):
         self.freq_val = self.frequency_slider.value()
         self.max_freq_set = self.freq_val[1]
