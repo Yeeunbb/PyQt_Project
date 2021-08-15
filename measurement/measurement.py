@@ -4,6 +4,7 @@ import FinanceDataReader as fdr
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSize, Qt
+from qtrangeslider import QRangeSlider
 
 
 class Triggers:
@@ -21,8 +22,12 @@ class Triggers:
 
     play_trig = 0# -1 for not working, 0 for not selected, 1 for select
     play_mode = 0# 0 for normal, 1 for 0.5, 2 for 0.25
-    time_nv_flag = 0
-    time_val = 0
+
+    time_nv_flag = 0 # 0 for not selected, 1 for select
+    time_val = 0 # time navigation slider value
+
+    time_st_flag = 0  # 0 for not selected, 1 for select
+    video_flag = 0
 
 
 class MeasurementWidget(QWidget):
@@ -33,6 +38,12 @@ class MeasurementWidget(QWidget):
         self.sound_flag = 0
         self.time_nv_flag = 0
         self.time_val = 0
+        self.time_st_flag = 0
+        self.video_flag = 0
+        self.frequency_flag = 0
+        self.recur_flag = 0
+        self.max_freq_set = 30;
+        self.min_freq_set = 0
 
         self.grid = QGridLayout()
         self.setLayout(self.grid)
@@ -104,6 +115,7 @@ class MeasurementWidget(QWidget):
         self.video_btn.setIcon(QIcon('./icons/video.png'))
         self.video_btn.setIconSize(QSize(60, 60))
         self.video_btn.setStyleSheet("background-color: #55B0BC;")
+        self.video_btn.clicked.connect(self.video_event)
 
         self.db_scaling_btn = QPushButton('',self)
         self.db_scaling_btn.setMinimumHeight(65)
@@ -134,6 +146,7 @@ class MeasurementWidget(QWidget):
         self.time_setting_btn.setIcon(QIcon('./icons/time-setting.png'))
         self.time_setting_btn.setIconSize(QSize(60, 60))
         self.time_setting_btn.setStyleSheet("background-color: #55B0BC;")
+        self.time_setting_btn.clicked.connect(self.time_setting_event)
 
         self.time_navigation_btn = QPushButton('',self)
         self.time_navigation_btn.setMinimumHeight(65)
@@ -269,6 +282,7 @@ class MeasurementWidget(QWidget):
         self.frequency_btn.setIconSize(QSize(60, 60))
         self.frequency_btn.setStyleSheet("background-color: #55B0BC;")
         self.grid.addWidget(self.frequency_btn, 3, 9)
+        self.frequency_btn.clicked.connect(self.frequency_event)
 
         self.file_save_btn.setStyleSheet("background-color: #5E777A")
         self.play_btn.setStyleSheet("background-color: #5E777A")
@@ -360,6 +374,61 @@ class MeasurementWidget(QWidget):
             Triggers.led_mode = 0
             self.led_btn.setIcon(QIcon('icons/led-off.png'))
 
+    def video_event(self):
+        if self.video_flag == 0:
+            self.video_flag = 1  # on
+
+            self.video_sp_btn = QPushButton('', self) #video start point setting button
+            self.video_sp_btn.setMinimumHeight(65)
+            self.video_sp_btn.setMaximumWidth(85)
+            self.video_sp_btn.setIcon(QIcon('./icons/video-editing.png'))
+            self.video_sp_btn.setIconSize(QSize(60, 60))
+            self.video_sp_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.video_sp_btn, 1, 8)
+
+            self.video_ep_btn = QPushButton('', self) #video end point setting button
+            self.video_ep_btn.setMinimumHeight(65)
+            self.video_ep_btn.setMaximumWidth(85)
+            self.video_ep_btn.setIcon(QIcon('./icons/video-editing.png'))
+            self.video_ep_btn.setIconSize(QSize(60, 60))
+            self.video_ep_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.video_ep_btn, 2, 8)
+
+            self.video_rs_btn = QPushButton('', self) #video remove setting button
+            self.video_rs_btn.setMinimumHeight(65)
+            self.video_rs_btn.setMaximumWidth(85)
+            self.video_rs_btn.setIcon(QIcon('./icons/video-editing.png'))
+            self.video_rs_btn.setIconSize(QSize(60, 60))
+            self.video_rs_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.video_rs_btn, 3, 8)
+
+            self.video_conv_btn = QPushButton('', self) #video conversion button
+            self.video_conv_btn.setMinimumHeight(65)
+            self.video_conv_btn.setMaximumWidth(85)
+            self.video_conv_btn.setIcon(QIcon('./icons/video_conversion.png'))
+            self.video_conv_btn.setIconSize(QSize(60, 60))
+            self.video_conv_btn.setStyleSheet("background-color: #55B0BC;")
+            self.grid.addWidget(self.video_conv_btn, 4, 8)
+        else:
+            self.video_flag = 0  # off
+
+            self.grid.removeWidget(self.video_sp_btn)
+            self.video_sp_btn.deleteLater()
+            self.video_sp_btn = None
+
+            self.grid.removeWidget(self.video_ep_btn)
+            self.video_ep_btn.deleteLater()
+            self.video_ep_btn = None
+
+            self.grid.removeWidget(self.video_rs_btn)
+            self.video_rs_btn.deleteLater()
+            self.video_rs_btn = None
+
+            self.grid.removeWidget(self.video_conv_btn)
+            self.video_conv_btn.deleteLater()
+            self.video_conv_btn = None
+
+
     def measurement_event(self):
         # cur_measure_value = 0
         if Triggers.measurement_trig == 0:  # 슬라이더 열기
@@ -445,6 +514,135 @@ class MeasurementWidget(QWidget):
             Triggers.db_scaling_mode = 0
             pass
 
+    def frequency_event(self):
+
+        if self.frequency_flag == 0:  #init or recur
+            self.frequency_flag = 1  # on
+
+            if self.recur_flag == 1:
+                self.grid.removeWidget(self.frequency_mode)
+                self.frequency_mode.deleteLater()
+                self.frequency_mode = None
+                self.grid.removeWidget(self.octave_lbl)
+                self.octave_lbl.deleteLater()
+                self.octave_lbl = None
+
+            self.frequency_mode = QPushButton("사용자지정")
+            self.grid.addWidget(self.frequency_mode, 0, 8)
+            self.frequency_mode.clicked.connect(self.frequency_octave)
+
+            self.max_freq_lbl = QLabel('최대 Freq \n' + str(self.max_freq_set),self)
+            self.grid.addWidget(self.max_freq_lbl, 1, 8)
+            self.max_freq_lbl.setAlignment(Qt.AlignCenter)
+
+            self.min_freq_lbl = QLabel('최소 Freq \n' + str(self.min_freq_set), self)
+            self.grid.addWidget(self.min_freq_lbl, 2, 8)
+            self.min_freq_lbl.setAlignment(Qt.AlignCenter)
+
+            self.frequency_slider = QRangeSlider()
+            self.frequency_slider.setRange(0, 30)
+            self.frequency_slider.setSingleStep(2)
+            self.frequency_slider.valueChanged.connect(self.frequency_slider_value_changed)
+            self.frequency_slider.setStyleSheet("margin-left: 5em; ")
+            self.grid.addWidget(self.frequency_slider, 3, 8, 5, 2)
+
+        else:  #
+            self.frequency_flag = 0  # off
+            self.recur_flag = 0;
+
+            text = self.frequency_mode.text()
+            self.grid.removeWidget(self.frequency_mode)
+            self.frequency_mode.deleteLater()
+            self.frequency_mode = None
+
+            if(text == '사용자지정'):
+                self.grid.removeWidget(self.max_freq_lbl)
+                self.max_freq_lbl.deleteLater()
+                self.max_freq_lbl = None
+
+                self.grid.removeWidget(self.min_freq_lbl)
+                self.min_freq_lbl.deleteLater()
+                self.min_freq_lbl = None
+
+                self.grid.removeWidget(self.frequency_slider)
+                self.frequency_slider.deleteLater()
+                self.frequency_slider = None
+            else:
+                self.grid.removeWidget(self.octave_lbl)
+                self.octave_lbl.deleteLater()
+                self.octave_lbl = None
+
+
+    def frequency_octave(self):
+        self.grid.removeWidget(self.frequency_mode)
+        self.frequency_mode.deleteLater()
+        self.frequency_mode = None
+
+        self.grid.removeWidget(self.max_freq_lbl)
+        self.max_freq_lbl.deleteLater()
+        self.max_freq_lbl = None
+
+        self.grid.removeWidget(self.min_freq_lbl)
+        self.min_freq_lbl.deleteLater()
+        self.min_freq_lbl = None
+
+        self.grid.removeWidget(self.frequency_slider)
+        self.frequency_slider.deleteLater()
+        self.frequency_slider = None
+
+        self.frequency_mode = QPushButton("Octave")
+        self.grid.addWidget(self.frequency_mode, 0, 8)
+        self.frequency_mode.clicked.connect(self.frequency_3rd_octave)
+
+        self.octave_lbl = QComboBox(self)
+        self.octave_lbl.addItem('250Hz')
+        self.octave_lbl.addItem('500Hz')
+        self.octave_lbl.addItem('1000Hz')
+        self.octave_lbl.addItem('2000Hz')
+        self.octave_lbl.addItem('4000Hz')
+        self.octave_lbl.addItem('8000Hz')
+        self.octave_lbl.addItem('16000Hz')
+        self.grid.addWidget(self.octave_lbl, 1, 8)
+
+    def frequency_3rd_octave(self):
+        self.grid.removeWidget(self.frequency_mode)
+        self.frequency_mode.deleteLater()
+        self.frequency_mode = None
+
+        self.grid.removeWidget(self.octave_lbl)
+        self.octave_lbl.deleteLater()
+        self.octave_lbl = None
+
+        self.recur_flag = 1
+
+        self.frequency_mode = QPushButton("3rd Oct")
+        self.grid.addWidget(self.frequency_mode, 0, 8)
+        self.frequency_mode.clicked.connect(self.frequency_event)
+
+        self.octave_lbl = QComboBox(self)
+        self.octave_lbl.addItem('250Hz')
+        self.octave_lbl.addItem('315Hz')
+        self.octave_lbl.addItem('400Hz')
+        self.octave_lbl.addItem('500Hz')
+        self.octave_lbl.addItem('630Hz')
+        self.octave_lbl.addItem('800Hz')
+        self.octave_lbl.addItem('1000Hz')
+        self.octave_lbl.addItem('1250Hz')
+        self.octave_lbl.addItem('1600Hz')
+        self.octave_lbl.addItem('2000Hz')
+        self.octave_lbl.addItem('2500Hz')
+        self.octave_lbl.addItem('3150Hz')
+        self.octave_lbl.addItem('4000Hz')
+        self.octave_lbl.addItem('5000Hz')
+        self.octave_lbl.addItem('6300Hz')
+        self.octave_lbl.addItem('8000Hz')
+        self.octave_lbl.addItem('10000Hz')
+        self.octave_lbl.addItem('12500Hz')
+        self.octave_lbl.addItem('16000Hz')
+        self.octave_lbl.addItem('20000Hz')
+
+        self.grid.addWidget(self.octave_lbl, 1, 8)
+
     def sound_control(self):
         if self.sound_flag == 0:  # init or sound off -> sound on
             self.sound_flag = 1  # on
@@ -483,6 +681,33 @@ class MeasurementWidget(QWidget):
         elif Triggers.sound_trig > 0: # 선택 영역 주파수
             Triggers.sound_trig = 0
             self.no_signal_btn.setIcon(QIcon('icons/signal.png'))
+
+#time setting (측정 영상 저장 시간 설정)
+    def time_setting_event(self):
+        if self.time_st_flag == 0: # init or time_setting on
+            self.time_st_flag = 1 # on
+
+            self.saved_lbl = QLabel('저장시간', self)
+            self.grid.addWidget(self.saved_lbl, 0, 8)
+
+            self.time_set = QComboBox(self)
+            self.time_set.addItem('10 초')
+            self.time_set.addItem('30 초')
+            self.time_set.addItem('60 초')
+            self.grid.addWidget(self.time_set, 1, 8)
+
+        else: # time_setting off
+            self.time_st_flag = 0 # off
+            #print(self.time_set.currentText())
+
+            self.grid.removeWidget(self.saved_lbl)
+            self.saved_lbl.deleteLater()
+            self.saved_lbl = None
+
+            self.grid.removeWidget(self.time_set)
+            self.time_set.deleteLater()
+            self.time_set = None
+
 
     def time_navigation_event(self):
         if self.time_nv_flag == 0: # init or time_navigation on
@@ -537,6 +762,15 @@ class MeasurementWidget(QWidget):
     def slider_value_changed(self):
         self.time_val = self.slider.value()
         self.time_lbl.setText(str(self.time_val))
+
+    def frequency_slider_value_changed(self):
+        self.freq_val = self.frequency_slider.value()
+        self.max_freq_set = self.freq_val[1]
+        self.min_freq_set = self.freq_val[0]
+        self.max_freq_lbl.setText('최대 Freq \n' + str(self.max_freq_set))
+        self.min_freq_lbl.setText('최소 Freq \n' + str(self.min_freq_set))
+        #print('low:' + str(self.freq_val[0]))
+        #print('high:' + str(self.freq_val[1]))
 
 
         # if pre_mode == 'None':
