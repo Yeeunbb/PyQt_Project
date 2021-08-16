@@ -1,4 +1,4 @@
-import sys
+import sys, time
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import *
@@ -147,6 +147,35 @@ class MainWindow(QWidget):
 # run
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+
+    # Create and display the splash screen
+    splash_pix = QPixmap('img/splashLogo.png')
+    splash_pix = splash_pix.scaled(720, 480)
+
+    splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
+    splash.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+    splash.setEnabled(False)
+    # splash = QSplashScreen(splash_pix)
+    # adding progress bar
+    progressBar = QProgressBar(splash)
+    progressBar.setMaximum(15)
+    progressBar.setGeometry(10, splash_pix.height() - 50, splash_pix.width(), 20)
+
+    # splash.setMask(splash_pix.mask())
+
+    splash.show()
+    splash.showMessage("<h1><font color='white'>Welcome SoundCam!</font></h1>", Qt.AlignTop , Qt.black)
+
+    for i in range(1, 11):
+        progressBar.setValue(i)
+        t = time.time()
+        while time.time() < t + 0.1:
+            app.processEvents()
+
+    # Simulate something that takes time
+    time.sleep(1)
+
     ex = SoundCam()
     ex.show()
+    splash.finish(ex)
     sys.exit(app.exec_())
