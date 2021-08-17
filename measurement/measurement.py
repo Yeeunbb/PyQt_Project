@@ -36,6 +36,8 @@ class MeasurementWidget(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.measure_set = 0
+        self.db_set = 0
         self.sound_flag = 0
         self.time_nv_flag = 0
         self.time_val = 0
@@ -437,19 +439,18 @@ class MeasurementWidget(QWidget):
             self.video_conv_btn = None
 
     def measurement_event(self):
-        # cur_measure_value = 0
         if Triggers.measurement_trig == 0:  # 슬라이더 열기
             Triggers.measurement_trig += 1
-            self.measure_lbl = QLabel('측정거리', self)
+            self.measure_lbl = QLabel('측정거리\n' + str(self.measure_set) + 'cm', self)
             self.grid.addWidget(self.measure_lbl, 0, 8)
+            self.measure_lbl.setAlignment(Qt.AlignCenter)
 
             self.measure_slider = QSlider(Qt.Vertical, self)
-            self.measure_slider.setRange(0, 50)
+            self.measure_slider.setRange(0, 350)
             self.measure_slider.setSingleStep(2)
+            self.measure_slider.setStyleSheet("margin-left: 3.5em; margin-bottom: 30px")
             self.grid.addWidget(self.measure_slider, 2, 8, 5, 1)
-            # self.measure_slider.setValue(cur_measure_value)
-            # self.measure_slider.valueChanged[int].connect(self.valuechange)
-            # print(cur_measure_value)
+            self.measure_slider.valueChanged.connect(self.measure_slider_value_changed)
 
         elif Triggers.measurement_trig > 0:  # 슬라이더 닫기
             Triggers.measurement_trig = 0
@@ -461,64 +462,102 @@ class MeasurementWidget(QWidget):
             self.measure_slider.deleteLater()
             self.measure_slider = None
 
-    def valuechange(self, value):
-        self.__init__(value)
+    def measure_slider_value_changed(self):
+        self.measure_set = self.measure_slider.value()
+        self.measure_lbl.setText('측정거리\n' + str(self.measure_set) + 'cm')
+
 
     def db_scaling_event(self):
         if Triggers.db_scaling_trig == 0:  # 슬라이더 열기
             Triggers.db_scaling_trig += 1
-            self.mode_lbl = QLabel('Auto', self)
-            self.db_mode = QComboBox(self)
-            self.db_mode.addItem('Auto')
-            self.db_mode.addItem('Smart')
-            self.db_mode.addItem('Off')
-            self.db_mode.activated[str].connect(self.db_mode_change_event)
-            self.grid.addWidget(self.db_mode, 0, 8)
+            self.db_set = 0
+            self.db_scaling_mode = 0 # Auto
+            self.auto_mode = QPushButton('Auto',self)
+            self.grid.addWidget(self.auto_mode, 0, 8)
+            self.auto_mode.clicked.connect(self.db_mode_change_smart)
 
-            self.dynamic_lbl = QLabel('Dynamic', self)
+            self.dynamic_lbl = QLabel('Dynamic',self)
             self.grid.addWidget(self.dynamic_lbl, 1, 8)
+            self.dynamic_lbl.setAlignment(Qt.AlignCenter)
 
-            self.slider = QSlider(Qt.Vertical, self)
+            self.slider = QSlider(Qt.Vertical,self)
             self.slider.setRange(0.5, 50)
             self.slider.setSingleStep(2)
             self.grid.addWidget(self.slider, 3, 8, 4, 1)
 
         elif Triggers.db_scaling_trig > 0:  # 슬라이더 닫기
             Triggers.db_scaling_trig = 0
-            self.grid.removeWidget(self.db_mode)
-            self.db_mode.deleteLater()
-            self.db_mode = None
+            self.grid.removeWidget(self.auto_mode)
+            self.auto_mode.deleteLater()
+            self.auto_mode = None
 
             self.grid.removeWidget(self.dynamic_lbl)
             self.dynamic_lbl.deleteLater()
             self.dynamic_lbl = None
 
-            self.grid.removeWidget(self.slider)
-            self.slider.deleteLater()
-            self.slider = None
+            self.grid.removeWidget(self.db_slider)
+            self.db_slider.deleteLater()
+            self.db_slider = None
 
-    def db_mode_change_event(self, text):
-        if Triggers.db_scaling_mode < 0:
-            self.grid.removeWidget(self.db_mode)
-            self.db_mode.deleteLater()
-            self.db_mode = None
-            self.grid.addWidget(self.db_mode, 0, 8)
+    def db_mode_change_smart(self):
+        self.db_scaling_mode += 1  # Smart
+        self.grid.removeWidget(self.auto_mode)
+        self.auto_mode.deleteLater()
+        self.auto_mode = None
 
-            self.mode_lbl.setText(text)
-            self.mode_lbl.adjustSize()
+        self.grid.removeWidget(self.dynamic_lbl)
+        self.dynamic_lbl.deleteLater()
+        self.dynamic_lbl = None
 
-        if text == 'Smart':
-            Triggers.db_scaling_mode = 1
-            self.crest_lbl = QLabel('Crest', self)
-            self.grid.addWidget(self.crest_lbl, 2, 8)
+        self.smart_mode = QPushButton('Smart', self)
+        self.grid.addWidget(self.smart_mode, 0, 8)
+        self.smart_mode.clicked.connect(self.db_mode_change_off)
 
-        elif text == 'Off':
-            Triggers.db_scaling_mode = 2
-            self.crest_lbl = QLabel('최고 dB', self)
-            self.grid.addWidget(self.crest_lbl, 2, 8)
-        else:
-            Triggers.db_scaling_mode = 0
-            pass
+        self.crest_lbl = QLabel('Crest\n' + str(self.db_set), self)
+        self.grid.addWidget(self.crest_lbl, 1, 8)
+        self.crest_lbl.setAlignment(Qt.AlignCenter)
+
+    def db_mode_change_off(self):
+        self.db_scaling_mode += 1  # Off
+        self.grid.removeWidget(self.smart_mode)
+        self.smart_mode.deleteLater()
+        self.smart_mode = None
+
+        self.grid.removeWidget(self.crest_lbl)
+        self.crest_lbl.deleteLater()
+        self.crest_lbl = None
+
+        self.off_mode = QPushButton('Off', self)
+        self.grid.addWidget(self.off_mode, 0, 8)
+        self.off_mode.clicked.connect(self.db_mode_change_exit)
+
+        self.most_db_lbl = QLabel('최고 dB\n' + str(self.db_set), self)
+        self.grid.addWidget(self.most_db_lbl, 1, 8)
+        self.most_db_lbl.setAlignment(Qt.AlignCenter)
+
+    def db_mode_change_exit(self):
+        Triggers.db_scaling_trig = 0
+        self.grid.removeWidget(self.off_mode)
+        self.off_mode.deleteLater()
+        self.off_mode = None
+
+        self.grid.removeWidget(self.most_db_lbl)
+        self.most_db_lbl.deleteLater()
+        self.most_db_lbl = None
+
+        self.grid.removeWidget(self.db_slider)
+        self.db_slider.deleteLater()
+        self.db_slider = None
+
+    def db_slider_value_changed(self):
+        self.db_set = 0
+        self.db_set = self.db_slider.value()
+        if self.db_scaling_mode == 0:
+            self.dynamic_lbl.setText('Dynamic\n' + str(self.db_set))
+        elif self.db_scaling_mode == 1:
+            self.crest_lbl.setText('Crest\n' + str(self.db_set))
+        elif self.db_scaling_mode == 2:
+            self.most_db_lbl.setText('최고 dB\n' + str(self.db_set))
 
     def frequency_event(self):
 
@@ -662,10 +701,11 @@ class MeasurementWidget(QWidget):
             self.grid.addWidget(self.no_signal_btn, 0, 8)
             self.no_signal_btn.clicked.connect(self.sound_event)
 
-            self.slider = QSlider(Qt.Vertical, self)
-            self.slider.setRange(0, 50)
-            self.slider.setSingleStep(2)
-            self.grid.addWidget(self.slider, 1, 8, 6, 1)
+            self.sound_slider = QSlider(Qt.Vertical,self)
+            self.sound_slider.setRange(0, 50)
+            self.sound_slider.setSingleStep(2)
+            self.sound_slider.setStyleSheet("margin-left: 3.5em; margin-bottom: 30px")
+            self.grid.addWidget(self.sound_slider, 1, 8, 6, 1)
 
         else:  # sound on -> sound off
             self.sound_flag = 0  # off
@@ -674,9 +714,9 @@ class MeasurementWidget(QWidget):
             self.no_signal_btn.deleteLater()
             self.no_signal_btn = None
 
-            self.grid.removeWidget(self.slider)
-            self.slider.deleteLater()
-            self.slider = None
+            self.grid.removeWidget(self.sound_slider)
+            self.sound_slider.deleteLater()
+            self.sound_slider = None
 
     def sound_event(self):
         if Triggers.sound_trig == 0:  # 전영역 주파수
@@ -787,19 +827,6 @@ class MeasurementWidget(QWidget):
         self.min_freq_lbl.setText('최소 Freq \n' + str(self.min_freq_set))
         # print('low:' + str(self.freq_val[0]))
         # print('high:' + str(self.freq_val[1]))
-
-        # if pre_mode == 'None':
-        #     pass
-        #
-        # elif pre_mode == 'Smart':
-        #     self.grid.removeWidget(self.crest_lbl)
-        #     self.crest_lbl.deleteLater()
-        #     self.crest_lbl = None
-        #
-        # elif pre_mode == 'Off':
-        #     self.grid.removeWidget(self.high_db_lbl)
-        #     self.high_db_lbl.deleteLater()
-        #     self.high_db_lbl = None
 
     # file open
     def fileOpen(self):
