@@ -3,9 +3,12 @@ import pyqtgraph as pg
 import FinanceDataReader as fdr
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, Qt, QTimer
 from qtrangeslider import QRangeSlider
 import measurement.screenshotclass as ssc
+from socket import *
+import pickle
+import numpy as np
 
 
 class Triggers:
@@ -160,44 +163,68 @@ class MeasurementWidget(QWidget):
         self.time_navigation_btn.setStyleSheet("background-color: #55B0BC;")
         self.time_navigation_btn.clicked.connect(self.time_navigation_event)
 
-        lbl_video = QLabel('Video')
-        lbl_video.setMaximumWidth(1000)
+        # plotting
+        
+        self.origin_Graph = pg.PlotWidget(title="original chart")
+        self.fft_Graph = pg.PlotWidget(title="fft chart")
 
-        # lbl_graph1 = QLabel('Graph1')
-        lbl_graph1 = pg.PlotWidget(axisItems={'bottom': pg.DateAxisItem()})
-        df = fdr.DataReader("005930")
-        unix_ts = [x.timestamp() for x in df.index]
-        lbl_graph1.plot(x=unix_ts, y=df['Close'])
-        lbl_graph1.setMaximumWidth(1000)
+        self.origin_Graph.enableAutoRange(axis='x')
+        self.origin_Graph.enableAutoRange(axis='y')
+        self.x = []
+        self.y = []
+
+        self.fft_Graph.enableAutoRange(axis='x')
+        self.fft_Graph.enableAutoRange(axis='y')
+        self.fft_val = []
+
+        self.origin_line = self.origin_Graph.plot(self.x, self.y)
+        self.fft_line = self.fft_Graph.plot(self.fft_val)
+
+        self.clientSocket = socket(AF_INET, SOCK_STREAM)
+
+        # self.Data_Get_Timer = QTimer()
+        # self.Data_Get_Timer.setInterval(100)
+        # self.Data_Get_Timer.timeout.connect(self.update)
+        # self.Data_Get_Timer.start()
+
+        # lbl_video = QLabel('Video')
+        # lbl_video.setMaximumWidth(1000)
+        #
+        # # lbl_graph1 = QLabel('Graph1')
+        # lbl_graph1 = pg.PlotWidget(axisItems={'bottom': pg.DateAxisItem()})
+        # df = fdr.DataReader("005930")
+        # unix_ts = [x.timestamp() for x in df.index]
+        # lbl_graph1.plot(x=unix_ts, y=df['Close'])
+        # lbl_graph1.setMaximumWidth(1000)
 
         # lbl_graph2 = QLabel('Graph2')
-        lbl_graph2 = pg.PlotWidget(title="line chart")
-        x = [1, 2, 3]
-        y = [4, 5, 6]
-        lbl_graph2.plot(x, y)
-        lbl_graph2.setMaximumWidth(250)
+        # lbl_graph2 = pg.PlotWidget(title="line chart")
+        # x = [1, 2, 3]
+        # y = [4, 5, 6]
+        # lbl_graph2.plot(x, y)
+        # lbl_graph2.setMaximumWidth(250)
+        #
+        # lbl_bar1 = QLabel('Bar1')
+        # lbl_bar1.setMaximumWidth(50)
+        #
+        # lbl_bar2 = QLabel('Bar2')
+        # lbl_bar2.setMaximumWidth(50)
+        #
+        # lbl_setting = QLabel('')
+        # lbl_setting.setMaximumWidth(100)
 
-        lbl_bar1 = QLabel('Bar1')
-        lbl_bar1.setMaximumWidth(50)
-
-        lbl_bar2 = QLabel('Bar2')
-        lbl_bar2.setMaximumWidth(50)
-
-        lbl_setting = QLabel('')
-        lbl_setting.setMaximumWidth(100)
-
-        lbl_video.setStyleSheet("border-style: solid;"
-                                "border-width: 1px;")
-        lbl_graph1.setStyleSheet("border-style: solid;"
-                                 "border-width: 1px;")
-        lbl_graph2.setStyleSheet("border-style: solid;"
-                                 "border-width: 1px;")
-        lbl_bar1.setStyleSheet("border-style: solid;"
-                               "border-width: 1px;")
-        lbl_bar2.setStyleSheet("border-style: solid;"
-                               "border-width: 1px;")
-        lbl_setting.setStyleSheet("border-style: solid;"
-                                  "border-width: 1px;")
+        # lbl_video.setStyleSheet("border-style: solid;"
+        #                         "border-width: 1px;")
+        # lbl_graph1.setStyleSheet("border-style: solid;"
+        #                          "border-width: 1px;")
+        # lbl_graph2.setStyleSheet("border-style: solid;"
+        #                          "border-width: 1px;")
+        # lbl_bar1.setStyleSheet("border-style: solid;"
+        #                        "border-width: 1px;")
+        # lbl_bar2.setStyleSheet("border-style: solid;"
+        #                        "border-width: 1px;")
+        # lbl_setting.setStyleSheet("border-style: solid;"
+        #                           "border-width: 1px;")
 
         self.grid.addWidget(self.rec_btn, 0, 0)
         self.grid.addWidget(self.capture_btn, 1, 0)
@@ -207,12 +234,14 @@ class MeasurementWidget(QWidget):
         self.grid.addWidget(self.led_btn, 5, 0)
         self.grid.addWidget(self.play_btn, 6, 0)
 
-        self.grid.addWidget(lbl_video, 0, 1, 4, 5)
-        self.grid.addWidget(lbl_graph1, 4, 1, 2, 5)
-        self.grid.addWidget(lbl_bar1, 0, 6, 4, 1)
-        self.grid.addWidget(lbl_bar2, 4, 6, 2, 1)
-        self.grid.addWidget(lbl_graph2, 4, 7, 2, 1)
-        self.grid.addWidget(lbl_setting, 0, 8, 7, 1)
+        self.grid.addWidget(self.origin_Graph, 0, 1, 4, 6)
+        self.grid.addWidget(self.fft_Graph, 4, 1, 3, 6)
+        # self.grid.addWidget(lbl_video, 0, 1, 4, 5)
+        # self.grid.addWidget(lbl_graph1, 4, 1, 2, 5)
+        # self.grid.addWidget(lbl_bar1, 0, 6, 4, 1)
+        # self.grid.addWidget(lbl_bar2, 4, 6, 2, 1)
+        # self.grid.addWidget(lbl_graph2, 4, 7, 2, 1)
+        # self.grid.addWidget(lbl_setting, 0, 8, 7, 1)
 
         self.grid.addWidget(self.exit_btn, 0, 9)
         self.grid.addWidget(self.video_btn, 1, 9)
@@ -259,6 +288,16 @@ class MeasurementWidget(QWidget):
 
     # 측정 시작 후 버튼 변경
     def reformat_btns(self):
+        ip = "127.0.0.1"
+        port = 12345
+
+        self.clientSocket.connect((ip, port))
+
+        self.Data_Get_Timer = QTimer()
+        self.Data_Get_Timer.setInterval(100)
+        self.Data_Get_Timer.timeout.connect(self.update)
+        self.Data_Get_Timer.start()
+
         self.grid.removeWidget(self.rec_ultra)
         self.grid.removeWidget(self.rec_btn)
         self.grid.removeWidget(self.time_marker_move_btn)
@@ -303,6 +342,9 @@ class MeasurementWidget(QWidget):
 
     # 측정 종료 후 복귀
     def stop_measure(self):
+        del self.Data_Get_Timer
+        self.clientSocket.close()
+
         self.grid.removeWidget(self.stop_btn)
         self.grid.removeWidget(self.frequency_btn)
         self.grid.removeWidget(self.measurement_distance)
@@ -339,6 +381,30 @@ class MeasurementWidget(QWidget):
         self.file_save_btn.setStyleSheet("background-color: #55B0BC")
         self.play_btn.setStyleSheet("background-color: #55B0BC")
         self.time_navigation_btn.setStyleSheet("background-color: #55B0BC")
+
+    # tcp 통신을 통한 데이터 갱신에 따른 차트 업데이트 함수
+    def update(self):
+        data = self.clientSocket.recv(1024)
+        recv_data = pickle.loads(data)
+
+        sig, time = recv_data[1], recv_data[0]
+        print(sig, time)
+
+        fft = abs(np.fft.fft(sig) / len(sig))
+        # print(fft)
+
+        ### 이상한 선분 나옴
+        # if len(self.x) > len(time) and len(self.y) > len(sig):
+        #     self.x = self.x[len(time):]
+        #     self.y = self.y[len(sig):]
+
+        self.x.extend(time)
+        self.y.extend(sig)
+
+        self.fft_val.extend(fft)
+
+        self.origin_line.setData(self.x, self.y)
+        self.fft_line.setData(self.fft_val)
 
     # 파일 재생 속도 설정
     def play_setting_event(self):
