@@ -524,10 +524,10 @@ class MeasurementWidget(QWidget):
             self.grid.addWidget(self.dynamic_lbl, 1, 8)
             self.dynamic_lbl.setAlignment(Qt.AlignCenter)
 
-            self.slider = QSlider(Qt.Vertical,self)
-            self.slider.setRange(0.5, 50)
-            self.slider.setSingleStep(2)
-            self.grid.addWidget(self.slider, 3, 8, 4, 1)
+            self.db_slider = QSlider(Qt.Vertical,self)
+            self.db_slider.setRange(0.5, 50)
+            self.db_slider.setSingleStep(2)
+            self.grid.addWidget(self.db_slider, 3, 8, 4, 1)
 
         elif Triggers.db_scaling_trig > 0:  # 슬라이더 닫기
             Triggers.db_scaling_trig = 0
