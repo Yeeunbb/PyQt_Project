@@ -527,6 +527,7 @@ class MeasurementWidget(QWidget):
             self.db_slider = QSlider(Qt.Vertical,self)
             self.db_slider.setRange(0.5, 50)
             self.db_slider.setSingleStep(2)
+            self.db_slider.setStyleSheet("margin-left: 5em; ")
             self.grid.addWidget(self.db_slider, 3, 8, 4, 1)
 
         elif Triggers.db_scaling_trig > 0:  # 슬라이더 닫기
