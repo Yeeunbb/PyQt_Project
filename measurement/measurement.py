@@ -382,7 +382,26 @@ class MeasurementWidget(QWidget):
             Triggers.led_mode = 0
             self.led_btn.setIcon(QIcon('icons/led-off.png'))
 
+    def change_btn(self, flag):
+        if(flag != 'video_flag' and self.video_flag == 1):
+            self.video_event()
+        elif(flag != 'sound_flag' and self.sound_flag == 1):
+            self.sound_control()
+        elif(flag != 'measurement_trig' and Triggers.measurement_trig != 0):
+            self.measurement_event()
+        elif(flag != 'db_scaling_trig' and Triggers.db_scaling_trig != 0):
+            self.db_scaling_event()
+        elif(flag != 'frequency_flag' and self.frequency_flag == 1):
+            self.frequency_event()
+        elif(flag != 'time_st_flag' and self.time_st_flag == 1):
+            self.time_setting_event()
+        elif(flag != 'time_nv_flag' and self.time_nv_flag == 1):
+            self.time_navigation_event()
+
+
     def video_event(self):
+        self.change_btn('video_flag')
+
         if self.video_flag == 0:
             self.video_flag = 1  # on
 
@@ -438,6 +457,7 @@ class MeasurementWidget(QWidget):
 
 
     def measurement_event(self):
+        self.change_btn('measurement_trig')
         # cur_measure_value = 0
         if Triggers.measurement_trig == 0:  # 슬라이더 열기
             Triggers.measurement_trig += 1
@@ -466,6 +486,8 @@ class MeasurementWidget(QWidget):
         self.__init__(value)
 
     def db_scaling_event(self):
+        self.change_btn('db_scaling_trig')
+
         if Triggers.db_scaling_trig == 0: # 슬라이더 열기
             Triggers.db_scaling_trig += 1
             self.mode_lbl = QLabel('Auto',self)
@@ -523,6 +545,7 @@ class MeasurementWidget(QWidget):
             pass
 
     def frequency_event(self):
+        self.change_btn('frequency_flag')
 
         if self.frequency_flag == 0:  #init or recur
             self.frequency_flag = 1  # on
@@ -651,6 +674,8 @@ class MeasurementWidget(QWidget):
         self.grid.addWidget(self.octave_lbl, 1, 8)
 
     def sound_control(self):
+        self.change_btn('sound_flag')
+
         if self.sound_flag == 0:  # init or sound off -> sound on
             self.sound_flag = 1  # on
             self.sound_btn.setIcon(QIcon('icons/sound.png'))
@@ -691,6 +716,7 @@ class MeasurementWidget(QWidget):
 
 #time setting (측정 영상 저장 시간 설정)
     def time_setting_event(self):
+        self.change_btn('time_st_flag')
         if self.time_st_flag == 0: # init or time_setting on
             self.time_st_flag = 1 # on
 
@@ -717,6 +743,8 @@ class MeasurementWidget(QWidget):
 
 
     def time_navigation_event(self):
+        self.change_btn('time_nv_flag')
+
         if self.time_nv_flag == 0: # init or time_navigation on
             self.time_nv_flag = 1 # on
 
