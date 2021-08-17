@@ -263,6 +263,9 @@ class MeasurementWidget(QWidget):
         self.grid.removeWidget(self.rec_btn)
         self.grid.removeWidget(self.time_marker_move_btn)
         self.rec_ultra.deleteLater()
+
+        self.rec_btn.deleteLater()
+        self.time_marker_move_btn.deleteLater()
         self.rec_ultra = None
 
         Triggers.play_trig = -1
@@ -306,6 +309,24 @@ class MeasurementWidget(QWidget):
         self.stop_btn.deleteLater()
         self.frequency_btn.deleteLater()
         self.measurement_distance.deleteLater()
+
+        # self.rec_btn = self.rec_wait
+        # self.time_marker_move_btn = self.time_rec
+
+        self.rec_btn = QPushButton('', self)
+        self.rec_btn.setMinimumHeight(65)
+        self.rec_btn.setMaximumWidth(85)
+        self.rec_btn.setIcon(QIcon('./icons/rec.png'))
+        self.rec_btn.setIconSize(QSize(60, 60))
+        self.rec_btn.setStyleSheet("background-color: #55B0BC;")
+        self.rec_btn.clicked.connect(self.rec_start_event)
+
+        self.time_marker_move_btn = QPushButton('', self)
+        self.time_marker_move_btn.setMinimumHeight(65)
+        self.time_marker_move_btn.setMaximumWidth(85)
+        self.time_marker_move_btn.setIcon(QIcon('./icons/time-marker.png'))
+        self.time_marker_move_btn.setIconSize(QSize(60, 60))
+        self.time_marker_move_btn.setStyleSheet("background-color: #55B0BC;")
 
         self.grid.addWidget(self.rec_btn, 0, 0)
         self.grid.addWidget(self.time_marker_move_btn, 3, 9)
