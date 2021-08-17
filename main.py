@@ -70,8 +70,7 @@ class MainWindow(QWidget):
         self.start_btn = QPushButton(flat=True)
         self.start_btn.setIcon(QIcon('icons/broadcast.png'))
         self.start_btn.setIconSize(QSize(200, 200))
-        self.start_btn.setMaximumHeight(700)
-        self.start_btn.setMaximumWidth(950)
+        self.start_btn.setMaximumHeight(1000)
         self.start_btn.setStyleSheet(
             "QPushButton { color: black; background-color: #519AA4; border-radius: 5px;}"
             "QPushButton:pressed { background-color: #305F65; }"
