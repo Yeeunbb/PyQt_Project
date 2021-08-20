@@ -1,4 +1,5 @@
-import sys, time
+import sys
+import time as tm
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import *
@@ -157,8 +158,8 @@ if __name__ == '__main__':
     # splash = QSplashScreen(splash_pix)
     # adding progress bar
     progressBar = QProgressBar(splash)
-    progressBar.setMaximum(15)
-    progressBar.setGeometry(10, splash_pix.height() - 50, splash_pix.width(), 20)
+    progressBar.setMaximum(10)
+    progressBar.setGeometry(10, splash_pix.height() - 50, splash_pix.width()-5, 20)
 
     # splash.setMask(splash_pix.mask())
 
@@ -167,12 +168,12 @@ if __name__ == '__main__':
 
     for i in range(1, 11):
         progressBar.setValue(i)
-        t = time.time()
-        while time.time() < t + 0.1:
+        pt = tm.time()
+        while tm.time() < pt + 0.1:
             app.processEvents()
 
     # Simulate something that takes time
-    time.sleep(1)
+    tm.sleep(1)
 
     ex = SoundCam()
     ex.show()
