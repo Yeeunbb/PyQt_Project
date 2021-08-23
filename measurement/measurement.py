@@ -27,8 +27,7 @@ class Triggers:
     play_trig = 0  # -1 for not working, 0 for not selected, 1 for select
     play_mode = 0  # 0 for normal, 1 for 0.5, 2 for 0.25
 
-    time_nv_flag = 0  # 0 for not selected, 1 for select
-    time_nv_trig = 0
+    time_nv_trig = 0 # 0 for on, 1 for off, -1 for disabled
 
 
 class MeasurementWidget(QWidget):
@@ -39,16 +38,15 @@ class MeasurementWidget(QWidget):
         self.measure_set = 0 # 측정 거리 설정 슬라이더 값
         self.db_set = 0 # dB 슬라이더 값
         self.sound_flag = 0 # 0 for sound btn off, 1 for on
-        self.time_nv_flag = 0
-        self.time_val = 0
-        self.time_st_flag = 0
-        self.video_flag = 0
-        self.frequency_flag = 0
-        self.recur_flag = 0
-        self.max_freq_set = 30;
-        self.min_freq_set = 0
+        self.time_val = 0 #time_navigation slider 값
+        self.time_st_flag = 0 # 0 for time_setting btn off, 1 for on
+        self.video_flag = 0  # 0 for video_btn off, 1 for on
+        self.frequency_flag = 0 # 0 for frequency_btn off, 1 for on
+        self.recur_flag = 0 # frequency 버튼 순환 확인 flag
+        self.max_freq_set = 30 # frequency slider max 설정 값
+        self.min_freq_set = 0 # frequency slider min 설정 값
 
-        self.i = 0
+        self.i = 0 # socket recv 값 갱신 주기 조절용 변수
 
         # 그리드 레이아웃 생성
         self.grid = QGridLayout()
@@ -455,7 +453,7 @@ class MeasurementWidget(QWidget):
             self.frequency_event()
         elif(flag != 'time_st_flag' and self.time_st_flag == 1):
             self.time_setting_event()
-        elif(flag != 'time_nv_flag' and Triggers.time_nv_trig > 0):
+        elif(flag != 'time_nv_trig' and Triggers.time_nv_trig > 0):
             self.time_navigation_event()
 
     # 동영상 편집 이벤트
@@ -859,7 +857,7 @@ class MeasurementWidget(QWidget):
         if Triggers.time_nv_trig == -1: #record 중일 때 비활성화
             return
         elif Triggers.time_nv_trig == 0: #init or on
-            self.change_btn('time_nv_flag')
+            self.change_btn('time_nv_trig')
 
             Triggers.time_nv_trig += 1
 
