@@ -1,8 +1,6 @@
 from PyQt5.QtCore import QDir, Qt, QTimer
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QFileDialog, QGridLayout,
-        QGroupBox, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QSpinBox,
-        QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import *
 
 
 class Screenshot(QWidget):
@@ -11,8 +9,6 @@ class Screenshot(QWidget):
 
         self.shootScreen()
         self.saveScreenshot()
-        #self.close()
-
 
     def saveScreenshot(self):
         format = 'png'
@@ -30,5 +26,3 @@ class Screenshot(QWidget):
             self.originalPixmap = screen.grabWindow(0)
         else:
             self.originalPixmap = QPixmap()
-
-
