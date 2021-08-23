@@ -29,10 +29,6 @@ class Triggers:
 
     time_nv_flag = 0  # 0 for not selected, 1 for select
     time_nv_trig = 0
-    time_val = 0  # time navigation slider value
-
-    time_st_flag = 0  # 0 for not selected, 1 for select
-    video_flag = 0
 
 
 class MeasurementWidget(QWidget):
@@ -259,6 +255,7 @@ class MeasurementWidget(QWidget):
         port = 12345
         self.clientSocket.connect((ip, port))
 
+        #socket recv thread 활성화
         self.th = wk.Worker(val=0, parent=self, client = self.clientSocket)
         self.th.thread_signal.connect(self.show_result)
         self.th.start()
@@ -309,7 +306,7 @@ class MeasurementWidget(QWidget):
 
     # 측정 종료 후 복귀
     def stop_measure(self):
-        self.th.terminate()
+        self.th.terminate() #socket thread 비활성화
         self.th.working = False
 
         self.clientSocket.close()
@@ -318,6 +315,7 @@ class MeasurementWidget(QWidget):
         self.grid.removeWidget(self.origin_Graph)
         self.origin_Graph.deleteLater()
 
+        #origin_graph 초기화. 해당 코드지우면 record 눌렀을 시, 그래프가 덧그려짐.
         self.origin_Graph = pg.PlotWidget(title="original chart")
         self.origin_Graph.enableAutoRange(axis='x')
         self.origin_Graph.enableAutoRange(axis='y')
@@ -443,6 +441,7 @@ class MeasurementWidget(QWidget):
             Triggers.led_mode = 0
             self.led_btn.setIcon(QIcon('icons/led-off.png'))
 
+    #버튼 중복 활성화 제어 함수
     def change_btn(self, flag):
         if(flag != 'video_flag' and self.video_flag == 1):
             self.video_event()
@@ -459,12 +458,12 @@ class MeasurementWidget(QWidget):
         elif(flag != 'time_nv_flag' and Triggers.time_nv_trig > 0):
             self.time_navigation_event()
 
-
+    # 동영상 편집 이벤트
     def video_event(self):
         self.change_btn('video_flag')
 
-        if self.video_flag == 0:
-            self.video_flag = 1  # on
+        if self.video_flag == 0: # on
+            self.video_flag = 1
 
             self.video_sp_btn = QPushButton('', self)  # video start point setting button
             self.video_sp_btn.setMinimumHeight(65)
@@ -648,13 +647,14 @@ class MeasurementWidget(QWidget):
         elif self.db_scaling_mode == 2:
             self.most_db_lbl.setText('최고 dB\n' + str(self.db_set))
 
+    #주파수 설정 이벤트
     def frequency_event(self):
         self.change_btn('frequency_flag')
 
         if self.frequency_flag == 0:  # init or recur
             self.frequency_flag = 1  # on
 
-            if self.recur_flag == 1:
+            if self.recur_flag == 1: # 버튼 순환으로 다시 '사용자지정'모드가 된 경우
                 self.grid.removeWidget(self.frequency_mode)
                 self.frequency_mode.deleteLater()
                 self.frequency_mode = None
@@ -666,7 +666,6 @@ class MeasurementWidget(QWidget):
             self.grid.addWidget(self.frequency_mode, 0, 8)
             self.frequency_mode.clicked.connect(self.frequency_octave)
             self.frequency_mode.setMaximumWidth(90)
-
 
             self.max_freq_lbl = QLabel('최대 Freq \n' + str(self.max_freq_set), self)
             self.grid.addWidget(self.max_freq_lbl, 1, 8)
@@ -682,12 +681,10 @@ class MeasurementWidget(QWidget):
             self.frequency_slider.valueChanged.connect(self.frequency_slider_value_changed)
             self.frequency_slider.setStyleSheet("margin-left: 5em; ")
             self.grid.addWidget(self.frequency_slider, 3, 8, 4, 2)
-            # self.sound_slider.setStyleSheet("margin-left: 3.5em; margin-bottom: 30px")
-            # self.grid.addWidget(self.sound_slider, 1, 8, 6, 1)
 
-        else:  #
+        else:  #버튼 off
             self.frequency_flag = 0  # off
-            self.recur_flag = 0;
+            self.recur_flag = 0
 
             text = self.frequency_mode.text()
             self.grid.removeWidget(self.frequency_mode)
@@ -711,6 +708,7 @@ class MeasurementWidget(QWidget):
                 self.octave_lbl.deleteLater()
                 self.octave_lbl = None
 
+    #주파수 설정 이벤트 (Octave 모드)
     def frequency_octave(self):
         self.grid.removeWidget(self.frequency_mode)
         self.frequency_mode.deleteLater()
@@ -743,6 +741,7 @@ class MeasurementWidget(QWidget):
         self.octave_lbl.addItem('16000Hz')
         self.grid.addWidget(self.octave_lbl, 1, 8)
 
+    #주파수 설정 이벤트(3rd Octave 모드)
     def frequency_3rd_octave(self):
         self.grid.removeWidget(self.frequency_mode)
         self.frequency_mode.deleteLater()
@@ -828,7 +827,7 @@ class MeasurementWidget(QWidget):
             self.no_signal_btn.setIcon(QIcon('icons/signal.png'))
 
 
-    # time setting (측정 영상 저장 시간 설정)
+    # time setting 이벤트(측정 영상 저장 시간 설정)
     def time_setting_event(self):
         self.change_btn('time_st_flag')
         if self.time_st_flag == 0: # init or time_setting on
@@ -855,10 +854,11 @@ class MeasurementWidget(QWidget):
             self.time_set.deleteLater()
             self.time_set = None
 
+    #time navigation 이벤트(음향 이미지 정밀 분석)
     def time_navigation_event(self):
-        if Triggers.time_nv_trig == -1:
+        if Triggers.time_nv_trig == -1: #record 중일 때 비활성화
             return
-        elif Triggers.time_nv_trig == 0:
+        elif Triggers.time_nv_trig == 0: #init or on
             self.change_btn('time_nv_flag')
 
             Triggers.time_nv_trig += 1
@@ -919,6 +919,7 @@ class MeasurementWidget(QWidget):
         self.now_time = self.slider.value()
         self.slider.setValue(self.now_time - 1)
 
+    #time_navigation_slider_event
     def slider_value_changed(self):
         self.time_val = self.slider.value()
         self.time_lbl.setText(str(self.time_val))
