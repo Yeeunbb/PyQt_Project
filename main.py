@@ -25,8 +25,6 @@ class SoundCam(QWidget):
         self.setWindowTitle('SoundCam')
         self.resize(720, 480)
 
-        # self.measurement_page = None
-
         widget_layout = QBoxLayout(QtWidgets.QBoxLayout.LeftToRight)
         self.stacked_widget.addWidget(self.main_window)
         self.stacked_widget.addWidget(self.setting_page)

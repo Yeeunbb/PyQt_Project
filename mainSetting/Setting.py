@@ -9,7 +9,6 @@ class SettingPage(QWidget):
     def __init__(self):
         super().__init__()
         self.setting_stack = QStackedWidget(self)
-        # SettingBtn().__init__()
         self.initUI()
 
     def initUI(self):
