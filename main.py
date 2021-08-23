@@ -153,13 +153,11 @@ if __name__ == '__main__':
     splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
     splash.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
     splash.setEnabled(False)
-    # splash = QSplashScreen(splash_pix)
+
     # adding progress bar
     progressBar = QProgressBar(splash)
     progressBar.setMaximum(10)
     progressBar.setGeometry(10, splash_pix.height() - 50, splash_pix.width()-5, 20)
-
-    # splash.setMask(splash_pix.mask())
 
     splash.show()
     splash.showMessage("<h1><font color='white'>Welcome SoundCam!</font></h1>", Qt.AlignTop , Qt.black)
