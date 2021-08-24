@@ -253,8 +253,7 @@ class MeasurementWidget(QWidget):
         port = 12345
         self.clientSocket.connect((ip, port))
 
-        #socket recv thread 활성화
-        self.th = wk.Worker(val=0, parent=self, client = self.clientSocket)
+        self.th = wk.Worker(val=0, parent=self, client=self.clientSocket)
         self.th.thread_signal.connect(self.show_result)
         self.th.start()
 
@@ -310,17 +309,16 @@ class MeasurementWidget(QWidget):
         self.clientSocket.close()
         self.clientSocket = socket(AF_INET, SOCK_STREAM)
 
-        self.grid.removeWidget(self.origin_Graph)
-        self.origin_Graph.deleteLater()
-
-        #origin_graph 초기화. 해당 코드지우면 record 눌렀을 시, 그래프가 덧그려짐.
-        self.origin_Graph = pg.PlotWidget(title="original chart")
-        self.origin_Graph.enableAutoRange(axis='x')
-        self.origin_Graph.enableAutoRange(axis='y')
-        self.x = []
-        self.y = []
-        self.origin_line = self.origin_Graph.plot(self.x, self.y)
-        self.grid.addWidget(self.origin_Graph, 0, 1, 4, 6)
+        # self.grid.removeWidget(self.origin_Graph)
+        # self.origin_Graph.deleteLater()
+        #
+        # self.origin_Graph = pg.PlotWidget(title="original chart")
+        # self.origin_Graph.enableAutoRange(axis='x')
+        # self.origin_Graph.enableAutoRange(axis='y')
+        # self.x = []
+        # self.y = []
+        # self.origin_line = self.origin_Graph.plot(self.x, self.y)
+        # self.grid.addWidget(self.origin_Graph, 0, 1, 4, 6)
 
         self.grid.removeWidget(self.stop_btn)
         self.grid.removeWidget(self.frequency_btn)
