@@ -1,4 +1,3 @@
-import sys
 import pyqtgraph as pg
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
@@ -8,7 +7,6 @@ import measurement.screenshotclass as ssc
 import measurement.worker as wk
 from socket import *
 import numpy as np
-import time as tm
 
 sig = []
 time = []
@@ -29,12 +27,7 @@ class Triggers:
     play_trig = 0  # -1 for not working, 0 for not selected, 1 for select
     play_mode = 0  # 0 for normal, 1 for 0.5, 2 for 0.25
 
-    time_nv_flag = 0  # 0 for not selected, 1 for select
-    time_nv_trig =0
-    time_val = 0  # time navigation slider value
-
-    time_st_flag = 0  # 0 for not selected, 1 for select
-    video_flag = 0
+    time_nv_trig = 0 # 0 for on, 1 for off, -1 for disabled
 
 
 class MeasurementWidget(QWidget):
@@ -42,23 +35,24 @@ class MeasurementWidget(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.measure_set = 0
-        self.db_set = 0
-        self.sound_flag = 0
-        self.time_nv_flag = 0
-        self.time_val = 0
-        self.time_st_flag = 0
-        self.video_flag = 0
-        self.frequency_flag = 0
-        self.recur_flag = 0
-        self.max_freq_set = 30;
-        self.min_freq_set = 0
+        self.measure_set = 0 # 측정 거리 설정 슬라이더 값
+        self.db_set = 0 # dB 슬라이더 값
+        self.sound_flag = 0 # 0 for sound btn off, 1 for on
+        self.time_val = 0 #time_navigation slider 값
+        self.time_st_flag = 0 # 0 for time_setting btn off, 1 for on
+        self.video_flag = 0  # 0 for video_btn off, 1 for on
+        self.frequency_flag = 0 # 0 for frequency_btn off, 1 for on
+        self.recur_flag = 0 # frequency 버튼 순환 확인 flag
+        self.max_freq_set = 30 # frequency slider max 설정 값
+        self.min_freq_set = 0 # frequency slider min 설정 값
 
-        self.i = 0
+        self.i = 0 # socket recv 값 갱신 주기 조절용 변수
 
+        # 그리드 레이아웃 생성
         self.grid = QGridLayout()
         self.setLayout(self.grid)
 
+        # 측정 시작 버튼
         self.rec_btn = QPushButton('', self)
         self.rec_btn.setMinimumHeight(65)
         self.rec_btn.setMaximumWidth(85)
@@ -67,6 +61,7 @@ class MeasurementWidget(QWidget):
         self.rec_btn.setStyleSheet("background-color: #55B0BC;")
         self.rec_btn.clicked.connect(self.rec_start_event)
 
+        # 화면 캡쳐 버튼
         self.capture_btn = QPushButton('', self)
         self.capture_btn.setMinimumHeight(65)
         self.capture_btn.setMaximumWidth(85)
@@ -75,6 +70,7 @@ class MeasurementWidget(QWidget):
         self.capture_btn.setStyleSheet("background-color: #55B0BC;")
         self.capture_btn.clicked.connect(self.capture_event)
 
+        # 타임 마커 표시 버튼
         self.time_marker_btn = QPushButton('', self)
         self.time_marker_btn.setMinimumHeight(65)
         self.time_marker_btn.setMaximumWidth(85)
@@ -82,7 +78,7 @@ class MeasurementWidget(QWidget):
         self.time_marker_btn.setIconSize(QSize(60, 60))
         self.time_marker_btn.setStyleSheet("background-color: #55B0BC;")
 
-        # color = rgb()
+        # 파일 불러오기 버튼
         self.file_open_btn = QPushButton('', self)
         self.file_open_btn.setMinimumHeight(65)
         self.file_open_btn.setMaximumWidth(85)
@@ -91,6 +87,7 @@ class MeasurementWidget(QWidget):
         self.file_open_btn.setStyleSheet("background-color: #55B0BC;")
         self.file_open_btn.clicked.connect(self.fileOpen)
 
+        # 파일 저장 버튼
         self.file_save_btn = QPushButton('', self)
         self.file_save_btn.setMinimumHeight(65)
         self.file_save_btn.setMaximumWidth(85)
@@ -98,6 +95,7 @@ class MeasurementWidget(QWidget):
         self.file_save_btn.setIconSize(QSize(60, 60))
         self.file_save_btn.setStyleSheet("background-color: #55B0BC;")
 
+        # LED 조명 켜기/끄기 버튼
         self.led_btn = QPushButton('', self)
         self.led_btn.setMinimumHeight(65)
         self.led_btn.setMaximumWidth(85)
@@ -106,6 +104,7 @@ class MeasurementWidget(QWidget):
         self.led_btn.setStyleSheet("background-color: #55B0BC;")
         self.led_btn.clicked.connect(self.led_control)
 
+        # 파일 재생 버튼
         self.play_btn = QPushButton('', self)
         self.play_btn.setMinimumHeight(65)
         self.play_btn.setMaximumWidth(85)
@@ -114,6 +113,7 @@ class MeasurementWidget(QWidget):
         self.play_btn.setStyleSheet("background-color: #55B0BC;")
         self.play_btn.clicked.connect(self.play_setting_event)
 
+        # 측정창 나가기 버튼
         self.exit_btn = QPushButton('', self)
         self.exit_btn.setMinimumHeight(65)
         self.exit_btn.setMaximumWidth(85)
@@ -121,6 +121,7 @@ class MeasurementWidget(QWidget):
         self.exit_btn.setIconSize(QSize(60, 60))
         self.exit_btn.setStyleSheet("background-color: #55B0BC;")
 
+        # 영상 변환 버튼
         self.video_btn = QPushButton('', self)
         self.video_btn.setMinimumHeight(65)
         self.video_btn.setMaximumWidth(85)
@@ -129,6 +130,7 @@ class MeasurementWidget(QWidget):
         self.video_btn.setStyleSheet("background-color: #55B0BC;")
         self.video_btn.clicked.connect(self.video_event)
 
+        # dB 스케일링 버튼
         self.db_scaling_btn = QPushButton('', self)
         self.db_scaling_btn.setMinimumHeight(65)
         self.db_scaling_btn.setMaximumWidth(85)
@@ -137,6 +139,7 @@ class MeasurementWidget(QWidget):
         self.db_scaling_btn.setStyleSheet("background-color: #55B0BC;")
         self.db_scaling_btn.clicked.connect(self.db_scaling_event)
 
+        # 타임 마커 이동 버튼
         self.time_marker_move_btn = QPushButton('', self)
         self.time_marker_move_btn.setMinimumHeight(65)
         self.time_marker_move_btn.setMaximumWidth(85)
@@ -144,6 +147,7 @@ class MeasurementWidget(QWidget):
         self.time_marker_move_btn.setIconSize(QSize(60, 60))
         self.time_marker_move_btn.setStyleSheet("background-color: #55B0BC;")
 
+        # 사운드 설정 버튼
         self.sound_btn = QPushButton('', self)
         self.sound_btn.setMinimumHeight(65)
         self.sound_btn.setMaximumWidth(85)
@@ -152,6 +156,7 @@ class MeasurementWidget(QWidget):
         self.sound_btn.setStyleSheet("background-color: #55B0BC;")
         self.sound_btn.clicked.connect(self.sound_control)
 
+        # 측정 영상 저장 시간 설정 버튼
         self.time_setting_btn = QPushButton('', self)
         self.time_setting_btn.setMinimumHeight(65)
         self.time_setting_btn.setMaximumWidth(85)
@@ -160,6 +165,7 @@ class MeasurementWidget(QWidget):
         self.time_setting_btn.setStyleSheet("background-color: #55B0BC;")
         self.time_setting_btn.clicked.connect(self.time_setting_event)
 
+        # 타임 네비게이션 버튼
         self.time_navigation_btn = QPushButton('', self)
         self.time_navigation_btn.setMinimumHeight(65)
         self.time_navigation_btn.setMaximumWidth(85)
@@ -168,8 +174,8 @@ class MeasurementWidget(QWidget):
         self.time_navigation_btn.setStyleSheet("background-color: #55B0BC;")
         self.time_navigation_btn.clicked.connect(self.time_navigation_event)
 
-        # plotting
-        
+
+        # graph plotting
         self.origin_Graph = pg.PlotWidget(title="original chart")
         self.fft_Graph = pg.PlotWidget(title="fft chart")
 
@@ -186,54 +192,8 @@ class MeasurementWidget(QWidget):
         self.fft_line = self.fft_Graph.plot(self.fft_val)
 
         self.clientSocket = socket(AF_INET, SOCK_STREAM)
-        # ip = "127.0.0.1"
-        # port = 12345
-        # self.clientSocket = socket(AF_INET, SOCK_STREAM)
-        # self.clientSocket.connect((ip, port))
-        # self.Data_Get_Timer = QTimer()
-        # self.Data_Get_Timer.setInterval(100)
-        # self.Data_Get_Timer.timeout.connect(self.update)
-        # self.Data_Get_Timer.start()
 
-        # lbl_video = QLabel('Video')
-        # lbl_video.setMaximumWidth(1000)
-        #
-        # # lbl_graph1 = QLabel('Graph1')
-        # lbl_graph1 = pg.PlotWidget(axisItems={'bottom': pg.DateAxisItem()})
-        # df = fdr.DataReader("005930")
-        # unix_ts = [x.timestamp() for x in df.index]
-        # lbl_graph1.plot(x=unix_ts, y=df['Close'])
-        # lbl_graph1.setMaximumWidth(1000)
-
-        # lbl_graph2 = QLabel('Graph2')
-        # lbl_graph2 = pg.PlotWidget(title="line chart")
-        # x = [1, 2, 3]
-        # y = [4, 5, 6]
-        # lbl_graph2.plot(x, y)
-        # lbl_graph2.setMaximumWidth(250)
-        #
-        # lbl_bar1 = QLabel('Bar1')
-        # lbl_bar1.setMaximumWidth(50)
-        #
-        # lbl_bar2 = QLabel('Bar2')
-        # lbl_bar2.setMaximumWidth(50)
-        #
-        # lbl_setting = QLabel('')
-        # lbl_setting.setMaximumWidth(100)
-
-        # lbl_video.setStyleSheet("border-style: solid;"
-        #                         "border-width: 1px;")
-        # lbl_graph1.setStyleSheet("border-style: solid;"
-        #                          "border-width: 1px;")
-        # lbl_graph2.setStyleSheet("border-style: solid;"
-        #                          "border-width: 1px;")
-        # lbl_bar1.setStyleSheet("border-style: solid;"
-        #                        "border-width: 1px;")
-        # lbl_bar2.setStyleSheet("border-style: solid;"
-        #                        "border-width: 1px;")
-        # lbl_setting.setStyleSheet("border-style: solid;"
-        #                           "border-width: 1px;")
-
+        # 그리드 레이아웃에 위젯 추가
         self.grid.addWidget(self.rec_btn, 0, 0)
         self.grid.addWidget(self.capture_btn, 1, 0)
         self.grid.addWidget(self.time_marker_btn, 2, 0)
@@ -244,12 +204,6 @@ class MeasurementWidget(QWidget):
 
         self.grid.addWidget(self.origin_Graph, 0, 1, 4, 6)
         self.grid.addWidget(self.fft_Graph, 4, 1, 3, 6)
-        # self.grid.addWidget(lbl_video, 0, 1, 4, 5)
-        # self.grid.addWidget(lbl_graph1, 4, 1, 2, 5)
-        # self.grid.addWidget(lbl_bar1, 0, 6, 4, 1)
-        # self.grid.addWidget(lbl_bar2, 4, 6, 2, 1)
-        # self.grid.addWidget(lbl_graph2, 4, 7, 2, 1)
-        # self.grid.addWidget(lbl_setting, 0, 8, 7, 1)
 
         self.grid.addWidget(self.exit_btn, 0, 9)
         self.grid.addWidget(self.video_btn, 1, 9)
@@ -265,7 +219,6 @@ class MeasurementWidget(QWidget):
         self.screenshot = ssc.Screenshot()
         self.screenshot.show()
         self.screenshot.close()
-
 
     # normal mode 측정 설정
     def rec_start_event(self):
@@ -286,8 +239,6 @@ class MeasurementWidget(QWidget):
             Triggers.rec_trig = 0
             Triggers.rec_num = 0
 
-    # print(Triggers.rec_num, "normal mode")
-
     # ultra mode 측정 설정
     def rec_ultra_event(self):
         if Triggers.rec_trig > 0:
@@ -300,9 +251,9 @@ class MeasurementWidget(QWidget):
     def reformat_btns(self):
         ip = "127.0.0.1"
         port = 12345
-        # self.clientSocket = socket(AF_INET, SOCK_STREAM)
         self.clientSocket.connect((ip, port))
 
+        #socket recv thread 활성화
         self.th = wk.Worker(val=0, parent=self, client = self.clientSocket)
         self.th.thread_signal.connect(self.show_result)
         self.th.start()
@@ -353,9 +304,7 @@ class MeasurementWidget(QWidget):
 
     # 측정 종료 후 복귀
     def stop_measure(self):
-        # del self.Data_Get_Timer
-
-        self.th.terminate()
+        self.th.terminate() #socket thread 비활성화
         self.th.working = False
 
         self.clientSocket.close()
@@ -364,6 +313,7 @@ class MeasurementWidget(QWidget):
         self.grid.removeWidget(self.origin_Graph)
         self.origin_Graph.deleteLater()
 
+        #origin_graph 초기화. 해당 코드지우면 record 눌렀을 시, 그래프가 덧그려짐.
         self.origin_Graph = pg.PlotWidget(title="original chart")
         self.origin_Graph.enableAutoRange(axis='x')
         self.origin_Graph.enableAutoRange(axis='y')
@@ -378,9 +328,6 @@ class MeasurementWidget(QWidget):
         self.stop_btn.deleteLater()
         self.frequency_btn.deleteLater()
         self.measurement_distance.deleteLater()
-
-        # self.rec_btn = self.rec_wait
-        # self.time_marker_move_btn = self.time_rec
 
         self.rec_btn = QPushButton('', self)
         self.rec_btn.setMinimumHeight(65)
@@ -426,7 +373,6 @@ class MeasurementWidget(QWidget):
 
         self.origin_line.setData(self.x, self.y)
         self.fft_line.setData(self.fft_val)
-
 
     # 파일 재생 속도 설정
     def play_setting_event(self):
@@ -484,7 +430,6 @@ class MeasurementWidget(QWidget):
             Triggers.play_mode = 2
             print(Triggers.play_mode, 'play 0.25')
 
-
     # led on/off
     def led_control(self):
         if Triggers.led_mode == 0:
@@ -494,7 +439,7 @@ class MeasurementWidget(QWidget):
             Triggers.led_mode = 0
             self.led_btn.setIcon(QIcon('icons/led-off.png'))
 
-
+    #버튼 중복 활성화 제어 함수
     def change_btn(self, flag):
         if(flag != 'video_flag' and self.video_flag == 1):
             self.video_event()
@@ -508,15 +453,15 @@ class MeasurementWidget(QWidget):
             self.frequency_event()
         elif(flag != 'time_st_flag' and self.time_st_flag == 1):
             self.time_setting_event()
-        elif(flag != 'time_nv_flag' and Triggers.time_nv_trig > 0):
+        elif(flag != 'time_nv_trig' and Triggers.time_nv_trig > 0):
             self.time_navigation_event()
 
-
+    # 동영상 편집 이벤트
     def video_event(self):
         self.change_btn('video_flag')
 
-        if self.video_flag == 0:
-            self.video_flag = 1  # on
+        if self.video_flag == 0: # on
+            self.video_flag = 1
 
             self.video_sp_btn = QPushButton('', self)  # video start point setting button
             self.video_sp_btn.setMinimumHeight(65)
@@ -568,10 +513,9 @@ class MeasurementWidget(QWidget):
             self.video_conv_btn.deleteLater()
             self.video_conv_btn = None
 
-
+    # 측정 거리 설정 이벤트
     def measurement_event(self):
         self.change_btn('measurement_trig')
-        # cur_measure_value = 0
         if Triggers.measurement_trig == 0:  # 슬라이더 열기
             Triggers.measurement_trig += 1
             self.measure_lbl = QLabel('측정거리\n' + str(self.measure_set) + 'cm', self)
@@ -595,11 +539,12 @@ class MeasurementWidget(QWidget):
             self.measure_slider.deleteLater()
             self.measure_slider = None
 
+    # 측정 거리 설정 슬라이더 값 변경 시 호출되는 함수
     def measure_slider_value_changed(self):
         self.measure_set = self.measure_slider.value()
         self.measure_lbl.setText('측정거리\n' + str(self.measure_set) + 'cm')
 
-
+    # dB 스케일링 이벤트
     def db_scaling_event(self):
         self.change_btn('db_scaling_trig')
 
@@ -611,7 +556,7 @@ class MeasurementWidget(QWidget):
             self.grid.addWidget(self.auto_mode, 0, 8)
             self.auto_mode.clicked.connect(self.db_mode_change_smart)
 
-            self.dynamic_lbl = QLabel('Dynamic',self)
+            self.dynamic_lbl = QLabel('Dynamic\n' + str(self.db_set), self)
             self.grid.addWidget(self.dynamic_lbl, 1, 8)
             self.dynamic_lbl.setAlignment(Qt.AlignCenter)
 
@@ -620,6 +565,7 @@ class MeasurementWidget(QWidget):
             self.db_slider.setSingleStep(2)
             self.db_slider.setStyleSheet("margin-left: 5em; ")
             self.grid.addWidget(self.db_slider, 3, 8, 4, 1)
+            self.db_slider.valueChanged.connect(self.db_slider_value_changed)
 
         elif Triggers.db_scaling_trig > 0:  # 슬라이더 닫기
             Triggers.db_scaling_trig = 0
@@ -635,6 +581,7 @@ class MeasurementWidget(QWidget):
             self.db_slider.deleteLater()
             self.db_slider = None
 
+    # dB 모드 변경(Auto to Smart)
     def db_mode_change_smart(self):
         self.db_scaling_mode += 1  # Smart
         self.grid.removeWidget(self.auto_mode)
@@ -653,6 +600,7 @@ class MeasurementWidget(QWidget):
         self.grid.addWidget(self.crest_lbl, 1, 8)
         self.crest_lbl.setAlignment(Qt.AlignCenter)
 
+    # dB 모드 변경(Smart to Off)
     def db_mode_change_off(self):
         self.db_scaling_mode += 1  # Off
         self.grid.removeWidget(self.smart_mode)
@@ -671,6 +619,7 @@ class MeasurementWidget(QWidget):
         self.grid.addWidget(self.most_db_lbl, 1, 8)
         self.most_db_lbl.setAlignment(Qt.AlignCenter)
 
+    # dB 모드 변경(Off to Exit)
     def db_mode_change_exit(self):
         Triggers.db_scaling_trig = 0
         self.grid.removeWidget(self.off_mode)
@@ -685,6 +634,7 @@ class MeasurementWidget(QWidget):
         self.db_slider.deleteLater()
         self.db_slider = None
 
+    # dB 슬라이더 값 변경 시 호출되는 함수
     def db_slider_value_changed(self):
         self.db_set = 0
         self.db_set = self.db_slider.value()
@@ -695,14 +645,14 @@ class MeasurementWidget(QWidget):
         elif self.db_scaling_mode == 2:
             self.most_db_lbl.setText('최고 dB\n' + str(self.db_set))
 
-
+    #주파수 설정 이벤트
     def frequency_event(self):
         self.change_btn('frequency_flag')
 
         if self.frequency_flag == 0:  # init or recur
             self.frequency_flag = 1  # on
 
-            if self.recur_flag == 1:
+            if self.recur_flag == 1: # 버튼 순환으로 다시 '사용자지정'모드가 된 경우
                 self.grid.removeWidget(self.frequency_mode)
                 self.frequency_mode.deleteLater()
                 self.frequency_mode = None
@@ -714,7 +664,6 @@ class MeasurementWidget(QWidget):
             self.grid.addWidget(self.frequency_mode, 0, 8)
             self.frequency_mode.clicked.connect(self.frequency_octave)
             self.frequency_mode.setMaximumWidth(90)
-
 
             self.max_freq_lbl = QLabel('최대 Freq \n' + str(self.max_freq_set), self)
             self.grid.addWidget(self.max_freq_lbl, 1, 8)
@@ -730,12 +679,10 @@ class MeasurementWidget(QWidget):
             self.frequency_slider.valueChanged.connect(self.frequency_slider_value_changed)
             self.frequency_slider.setStyleSheet("margin-left: 5em; ")
             self.grid.addWidget(self.frequency_slider, 3, 8, 4, 2)
-            # self.sound_slider.setStyleSheet("margin-left: 3.5em; margin-bottom: 30px")
-            # self.grid.addWidget(self.sound_slider, 1, 8, 6, 1)
 
-        else:  #
+        else:  #버튼 off
             self.frequency_flag = 0  # off
-            self.recur_flag = 0;
+            self.recur_flag = 0
 
             text = self.frequency_mode.text()
             self.grid.removeWidget(self.frequency_mode)
@@ -759,6 +706,7 @@ class MeasurementWidget(QWidget):
                 self.octave_lbl.deleteLater()
                 self.octave_lbl = None
 
+    #주파수 설정 이벤트 (Octave 모드)
     def frequency_octave(self):
         self.grid.removeWidget(self.frequency_mode)
         self.frequency_mode.deleteLater()
@@ -791,6 +739,7 @@ class MeasurementWidget(QWidget):
         self.octave_lbl.addItem('16000Hz')
         self.grid.addWidget(self.octave_lbl, 1, 8)
 
+    #주파수 설정 이벤트(3rd Octave 모드)
     def frequency_3rd_octave(self):
         self.grid.removeWidget(self.frequency_mode)
         self.frequency_mode.deleteLater()
@@ -831,7 +780,7 @@ class MeasurementWidget(QWidget):
 
         self.grid.addWidget(self.octave_lbl, 1, 8)
 
-
+    # 사운드 설정 On/Off
     def sound_control(self):
         self.change_btn('sound_flag')
 
@@ -865,6 +814,7 @@ class MeasurementWidget(QWidget):
             self.sound_slider.deleteLater()
             self.sound_slider = None
 
+    # 사운드 On일 때 호출되는 함수
     def sound_event(self):
         if Triggers.sound_trig == 0:  # 전영역 주파수
             Triggers.sound_trig += 1
@@ -875,7 +825,7 @@ class MeasurementWidget(QWidget):
             self.no_signal_btn.setIcon(QIcon('icons/signal.png'))
 
 
-    # time setting (측정 영상 저장 시간 설정)
+    # time setting 이벤트(측정 영상 저장 시간 설정)
     def time_setting_event(self):
         self.change_btn('time_st_flag')
         if self.time_st_flag == 0: # init or time_setting on
@@ -902,11 +852,12 @@ class MeasurementWidget(QWidget):
             self.time_set.deleteLater()
             self.time_set = None
 
+    #time navigation 이벤트(음향 이미지 정밀 분석)
     def time_navigation_event(self):
-        if Triggers.time_nv_trig == -1:
+        if Triggers.time_nv_trig == -1: #record 중일 때 비활성화
             return
-        elif Triggers.time_nv_trig == 0:
-            self.change_btn('time_nv_flag')
+        elif Triggers.time_nv_trig == 0: #init or on
+            self.change_btn('time_nv_trig')
 
             Triggers.time_nv_trig += 1
 
@@ -957,7 +908,6 @@ class MeasurementWidget(QWidget):
 
             Triggers.time_nv_trig = 0
 
-
     # time_navigation_arrow_btn_event
     def time_up_event(self):
         self.now_time = self.slider.value()
@@ -967,7 +917,7 @@ class MeasurementWidget(QWidget):
         self.now_time = self.slider.value()
         self.slider.setValue(self.now_time - 1)
 
-
+    #time_navigation_slider_event
     def slider_value_changed(self):
         self.time_val = self.slider.value()
         self.time_lbl.setText(str(self.time_val))
@@ -979,8 +929,6 @@ class MeasurementWidget(QWidget):
         self.min_freq_set = self.freq_val[0]
         self.max_freq_lbl.setText('최대 Freq \n' + str(self.max_freq_set))
         self.min_freq_lbl.setText('최소 Freq \n' + str(self.min_freq_set))
-        # print('low:' + str(self.freq_val[0]))
-        # print('high:' + str(self.freq_val[1]))
 
     # file open
     def fileOpen(self):
