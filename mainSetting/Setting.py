@@ -2,7 +2,6 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from mainSetting.SettingDetails import *
 
 # setting page 1
 class SettingPage(QWidget):
@@ -16,18 +15,10 @@ class SettingPage(QWidget):
         self.resize(720, 480)
 
         self.setting_btns = SettingBtn()
-        self.instrumentClass = Instrument()
 
         widget_layout = QBoxLayout(QBoxLayout.LeftToRight)
-        self.setting_stack.addWidget(self.setting_btns)
-        self.setting_stack.addWidget(self.instrumentClass)
-        widget_layout.addWidget(self.setting_stack)
+        widget_layout.addWidget(self.setting_btns)
         self.setLayout(widget_layout)
-
-        self.setting_btns.instrument_btn.clicked.connect(self.instrument)
-
-    def instrument(self):
-        self.setting_stack.setCurrentWidget(self.instrumentClass)
 
 
 class SettingBtn(QWidget):
@@ -36,17 +27,6 @@ class SettingBtn(QWidget):
         self.setWindowTitle("Setting Page")
         self.resize(720, 480)
         self.theme_flag = 0  # 0 for light, 1 for dark
-
-        # main 화면으로 돌아가기
-        self.back_to_main = QPushButton(self)
-        self.back_to_main.setIcon(QIcon('icons/go-back.png'))
-        self.back_to_main.setIconSize(QSize(40, 40))
-        self.back_to_main.setMaximumHeight(100)
-        self.back_to_main.setMaximumWidth(100)
-        self.back_to_main.setStyleSheet(
-            "QPushButton { color: black; border-radius: 5px;}"
-            "QPushButton:pressed { background-color: #D9D9D9; }"
-        )
 
         # 카메라 해상도 및 beamforming 프레임 속도 설정
         self.instrument_btn = QPushButton(flat=True)
@@ -172,7 +152,6 @@ class SettingBtn(QWidget):
 
         # 그리드 적용
         main_box = QGridLayout(self)
-        main_box.addWidget(self.back_to_main, 0, 27)
         main_box.addWidget(self.instrument_btn, 1, 0, 5, 4)
         main_box.addWidget(self.sendData_btn, 1, 5, 5, 4)
         main_box.addWidget(self.informaintion_btn, 1, 10, 5, 4)
