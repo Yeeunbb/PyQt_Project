@@ -34,16 +34,12 @@ class SoundCam(QWidget):
         self.setLayout(widget_layout)
 
         self.main_window.setting_btn.clicked.connect(self.go_setting)
-        self.setting_btns.back_to_main.clicked.connect(self.back_to_main_set)  # 작동 안 함
         self.main_window.start_btn.clicked.connect(self.start)
         self.measurement_page.exit_btn.clicked.connect(self.back_to_main)
         self.main_window.file_btn.clicked.connect(self.FileOpen)
 
     def go_setting(self):
         self.stacked_widget.setCurrentWidget(self.setting_page)
-
-    def back_to_main_set(self):
-        self.stacked_widget.setCurrentWidget(self.main_window)
 
     def back_to_main(self):
         self.stacked_widget.setCurrentWidget(self.main_window)
