@@ -357,8 +357,8 @@ class MeasurementWidget(QWidget):
         global time, sig
         sig.append(val[1])
         if self.i == 9:
-            fft = abs(np.fft.fft(sig) / len(sig))
-            self.fft_val.extend(fft)
+            self.fft_val = abs(np.fft.fft(sig) / len(sig))
+            # self.fft_val.extend(fft)
             self.i = 0
 
         self.i += 1
@@ -954,8 +954,8 @@ class MeasurementWindow(QMainWindow):
         menubar = self.menuBar()
         menubar.setNativeMenuBar(False)
 
-        filemenu = menubar.addMenu('&File')
-        filemenu.addAction(exitAction)
+        Exit = menubar.addMenu('&File')
+        Exit.addAction(exitAction)
 
         filemenu = menubar.addMenu('&Edit')
         filemenu.addAction(exitAction)
