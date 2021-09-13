@@ -1,7 +1,8 @@
 from PyQt5.QtCore import QThread, pyqtSignal
 import time as tm
 
-#server로부터 데이터를 받고, slicing하는 클래스
+
+# server로부터 데이터를 받고, slicing하는 클래스
 class Worker(QThread):
     thread_signal = pyqtSignal(list)
 
