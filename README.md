@@ -4,15 +4,19 @@
 ![Python](https://img.shields.io/badge/Python-v3.9.1-yellow?logo=Python)
 ![MIT](https://img.shields.io/github/license/rlagksruf16/Daily-mistakes?label=license)
 
-### Splash Screen & Main Screen
-<img src="https://github.com/melli0505/PyQt_Project/blob/master/img/splashLogo.png?raw=true" width="50%">
-<img src="https://github.com/melli0505/PyQt_Project/blob/master/img/mainIMG.png?raw=true" width="45%">
+### Splash Screen
+<img src="https://github.com/melli0505/PyQt_Project/blob/master/img/splashLogo.png?raw=true" width="90%">
+
+### Main Screen
+<img src="https://github.com/melli0505/PyQt_Project/blob/master/img/mainIMG.png?raw=true" width="90%">
 
 > Init -> Splash Screen -> Main Screen
 
-### Measurement Screen & Start Measurement
-<img src="https://github.com/melli0505/PyQt_Project/blob/master/img/mesureIMG.png?raw=true" width="50%">
-<img src="https://github.com/melli0505/PyQt_Project/blob/master/img/measureIMG.png?raw=true" width="49%">
+### Measurement Screen
+<img src="https://github.com/melli0505/PyQt_Project/blob/master/img/mesureIMG.png?raw=true" width="90%">
+
+### Start Measurement
+<img src="https://github.com/melli0505/PyQt_Project/blob/master/img/measureIMG.png?raw=true" width="90%">
 
 > REC 버튼 클릭 시 original data & fft data가 수신되고 그래프가 그려집니다. 
 
